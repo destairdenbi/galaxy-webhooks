@@ -1,0 +1,20 @@
+name: destair_qa
+type: 
+  - masthead
+activate: true
+
+icon: fa-user
+tooltip: 'Start de.STAIR NGS analysis tour'
+
+function: >
+  $.getJSON("/api/webhooks/", function( data ) {
+      for( var item in data ) {
+          var webhook = data[item];
+          if( webhook.name === "tour" ) {
+              if( webhook.script && !window.static_search ) {
+                  $(  '<script/>', { type: 'text/javascript' } ).text( webhook.script ).appendTo( 'head' );                  
+              }
+              break;
+          }
+      }
+  });
