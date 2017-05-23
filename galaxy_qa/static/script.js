@@ -45,10 +45,11 @@ $(document).ready(function() {
         return data;
     };
 
-    var giveTour =  function(tour_id){
+    var giveTour = function(tour_id){
         var url = gxy_root + 'api/tours/' + tour_id;
         $.getJSON( url, function( data ) {
             // Set hooks for additional click and data entry actions.
+
             var tourdata = hooked_tour_from_data(data);
             sessionStorage.setItem('activeGalaxyTour', JSON.stringify(data));
             // Store tour steps in sessionStorage to easily persist w/o hackery.
@@ -61,6 +62,6 @@ $(document).ready(function() {
             tour.restart();
         });
     };
-    
-    giveTour("galaxy_ui");
+
+    giveTour("core.galaxy_ui");
 });

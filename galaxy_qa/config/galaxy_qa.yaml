@@ -1,16 +1,16 @@
-name: destair_qa
+name: galaxy_qa
 type: 
   - masthead
 activate: true
 
-icon: fa-user
+icon: fast-forward
 tooltip: 'Start de.STAIR NGS analysis tour'
 
 function: >
   $.getJSON("/api/webhooks/", function( data ) {
       for( var item in data ) {
           var webhook = data[item];
-          if( webhook.name === "tour" ) {
+          if( webhook.name === "galaxy_qa" ) {
               if( webhook.script && !window.static_search ) {
                   $(  '<script/>', { type: 'text/javascript' } ).text( webhook.script ).appendTo( 'head' );                  
               }
