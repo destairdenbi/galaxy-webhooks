@@ -1,0 +1,13 @@
+#hello {
+    text-align: center;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+#hello-name {
+    color: #fff;
+}
+
+#hello-text {
+    color: #fff;
+}

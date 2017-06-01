@@ -1,0 +1,54 @@
+#destairtour-overlay-div {
+    background-color: #fff;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    -webkit-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    border: 1px solid #2c3143;
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+}
+
+#destairtour-overlay-div button {
+    z-index: 1;
+}
+
+#destairtour-form-div {
+    font-size: 14px;
+    text-align: left;
+    padding: 10px;
+}
+
+#destairtour-overlay {
+    text-align: center;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+#destairtour-masthead-div {
+    color: #fff;
+    padding-bottom: 8px;
+    padding-top: 5px;
+}
+
+#destairtour-masthead-div button {
+    color: #fff;
+    font-size: 14px;
+    background-color: #768fa5;
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 4px #5c768c;
+    padding: 0 14px;
+}
+
+#destairtour-masthead-div button:focus {
+    outline: 0;
+}
+
+#destairtour-masthead-div button:active {
+    box-shadow: 0 0 #5c768c;
+    transform: translateY(5px);
+}

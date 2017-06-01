@@ -1,0 +1,21 @@
+name: hello
+type:
+  - masthead
+activate: true
+
+icon: fa-file-text-o
+tooltip: 'hello'
+
+function: >
+  $.getJSON("/api/webhooks/", function( data ) {
+      for( var item in data ) {
+          var webhook = data[item];
+          if( webhook.name === "hello" ) {
+              if( webhook.script && !window.static_search ) {
+                  $( '<script/>', { type: 'text/javascript' } ).text( webhook.script ).appendTo( 'head' );
+                  $( '<style/>', { type: 'text/css' } ).text( webhook.styles ).appendTo( 'head' );    
+              }
+              break;
+          }
+      }
+  });
