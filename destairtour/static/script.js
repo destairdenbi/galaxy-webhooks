@@ -7,9 +7,11 @@ $(document).ready(function() {
         parentElement: $('.full-content'),
 
         appTemplate: _.template(
-            '<div id="destairtour-overlay-div">Please select:' +
-                '<div id="destairtour-form-div"></div>' +
-                '<button id="destairtour-submit-btn">Submit</button>' +
+            '<div id="destairtour-overlay-div">' +
+                '<div id="destairtour-qa-div">Please select:' +
+                    '<div id="destairtour-form-div"></div>' +
+                    '<button id="destairtour-submit-btn">Submit</button>' +
+                '</div>' +
             '</div>' 
         ),
 
@@ -41,7 +43,8 @@ $(document).ready(function() {
             this.parentElement.prepend(this.appTemplate());
             this.$el.html(this.mastheadTemplate());
 
-            this.$mastheadDiv = this.$('#destairtour-masthead-div');
+            this.$overlayDiv = $('#destairtour-overlay-div');
+            this.$mastheadDiv = $('#destairtour-masthead-div');
             this.$formDiv = $('#destairtour-form-div');
             this.$submitBtn = $('#destairtour-submit-btn');
         },
@@ -87,15 +90,19 @@ $(document).ready(function() {
         registerEvents: function() {
             var self = this;
             this.parentElement.on('keydown',function(e) {
-                if( e ) {
-                    e.stopPropagation();
-                    if ( e.which === 27 || e.keyCode === 27 ) {
-                        self.destairtour = {btntext: 'close'};
-                        self.invokeOverlay();
-                    }
+                e.stopPropagation();
+                if ( e.which === 27 || e.keyCode === 27 ) {
+                    self.destairtour = {btntext: 'close'};
+                    self.invokeOverlay();
                 }
             });
-            this.$submitBtn.on('click',function(){
+
+            this.$overlayDiv.on('click',function(e){
+                e.stopPropagation();
+            });
+
+            this.$submitBtn.on('click',function(e){
+                e.stopPropagation();
                 self.runSelection();
             });
         },
