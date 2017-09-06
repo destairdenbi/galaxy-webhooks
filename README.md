@@ -1,5 +1,6 @@
 # webhooks
-1) clone from https://github.com/galaxyproject/galaxy
-2) set env GALAXY_ROOT to galaxy base directory
-3) use pip to install planemo
-4) run setup.sh
+1) export GALAXY_ROOT=/path/to/galaxy
+2) git clone https://github.com/galaxyproject/galaxy.git $GALAXY_ROOT
+3) once run $GALAXY_ROOT/run.sh
+4) setup de.STAIR webhooks from https://github.com/destairdenbi/webhooks
+5) run setup.sh

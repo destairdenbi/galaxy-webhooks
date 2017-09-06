@@ -2,39 +2,39 @@ $(document).ready(function() {
 
     var TourOverlayView = Backbone.View.extend({
 
-        el: '#destairtour',
+        el: '#switchtour',
 
         parentElement: $('.full-content'),
 
         appTemplate: _.template(
-            '<div id="destairtour-overlay-div">' +
-                '<div id="destairtour-qa-div">Please select:' +
-                    '<div id="destairtour-form-div"></div>' +
-                    '<button id="destairtour-submit-btn">Submit</button>' +
+            '<div id="switchtour-overlay-div">' +
+                '<div id="switchtour-qa-div">Please select:' +
+                    '<div id="switchtour-form-div"></div>' +
+                    '<button id="switchtour-submit-btn">Submit</button>' +
                 '</div>' +
             '</div>' 
         ),
 
         formTemplate: _.template(
-            '<input type="radio" name="destairtour-select-in" value="<%= formvalue %>"><%= formvalue %><br>'
+            '<input type="radio" name="switchtour-select-in" value="<%= formvalue %>"><%= formvalue %><br>'
         ),
 
         mastheadTemplate: _.template(
-            '<div id="destairtour-masthead-div"></div>'
+            '<div id="switchtour-masthead-div"></div>'
         ),
 
         btnTemplate: _.template(
-            '<button id="destairtour-masthead-btn"><%= btntext %></button>'
+            '<button id="switchtour-masthead-btn"><%= btntext %></button>'
         ),
 
         events: {
-            'click #destairtour-masthead-btn': 'invokeOverlay'
+            'click #switchtour-masthead-btn': 'invokeOverlay'
         },
 
         initialize: function () {
             this.render();
             this.registerEvents();
-            this.destairtour = {btntext: 'close'};
+            this.switchtour = {btntext: 'close'};
             this.renderBtn();
             this.invokeOverlay();
         },
@@ -43,14 +43,14 @@ $(document).ready(function() {
             this.parentElement.prepend(this.appTemplate());
             this.$el.html(this.mastheadTemplate());
 
-            this.$overlayDiv = $('#destairtour-overlay-div');
-            this.$mastheadDiv = $('#destairtour-masthead-div');
-            this.$formDiv = $('#destairtour-form-div');
-            this.$submitBtn = $('#destairtour-submit-btn');
+            this.$overlayDiv = $('#switchtour-overlay-div');
+            this.$mastheadDiv = $('#switchtour-masthead-div');
+            this.$formDiv = $('#switchtour-form-div');
+            this.$submitBtn = $('#switchtour-submit-btn');
         },
 
         renderBtn: function() {
-            this.$mastheadDiv.html(this.btnTemplate({btntext: this.destairtour.btntext}));
+            this.$mastheadDiv.html(this.btnTemplate({btntext: this.switchtour.btntext}));
         },
 
         renderForm: function (values) {
@@ -62,16 +62,16 @@ $(document).ready(function() {
                 o = o.concat(self.formTemplate({formvalue: this}));
             });
             self.$formDiv.html(o);
-            self.$selectIn = $("input[name='destairtour-select-in']");
+            self.$selectIn = $("input[name='switchtour-select-in']");
         },
 
         invokeOverlay: function() {
             var self = this;
-            if (this.destairtour.btntext == 'close'){
-                self.destairtour = {btntext: 'open'};    
+            if (this.switchtour.btntext == 'close'){
+                self.switchtour = {btntext: 'open'};    
                 self.removeOverlay();
             } else {
-                self.destairtour = {btntext: 'close'};
+                self.switchtour = {btntext: 'close'};
                 self.showOverlay();
             }
             self.renderBtn();
@@ -81,7 +81,7 @@ $(document).ready(function() {
             var value = this.$selectIn.filter(':checked').val();
             if(value){
                 this.$selectIn.prop('checked', false);
-                this.destairtour = {btntext: 'close'};
+                this.switchtour = {btntext: 'close'};
                 this.invokeOverlay();
                 giveTour(value);
             }
@@ -92,7 +92,7 @@ $(document).ready(function() {
             this.parentElement.on('keydown',function(e) {
                 e.stopPropagation();
                 if ( e.which === 27 || e.keyCode === 27 ) {
-                    self.destairtour = {btntext: 'close'};
+                    self.switchtour = {btntext: 'close'};
                     self.invokeOverlay();
                 }
             });
@@ -108,7 +108,7 @@ $(document).ready(function() {
         },
 
         showOverlay: function() {
-            $('#destairtour-overlay-div').show();
+            $('#switchtour-overlay-div').show();
             $('#left').css('filter', 'blur(5px)');
             $('#center').css('filter', 'blur(5px)');
             $('#right').css('filter', 'blur(5px)');
@@ -116,7 +116,7 @@ $(document).ready(function() {
 
         /** Remove the search overlay */
         removeOverlay: function() {
-            $('#destairtour-overlay-div').hide();
+            $('#switchtour-overlay-div').hide();
             $('#left').css('filter', 'none');
             $('#center').css('filter', 'none');
             $('#right').css('filter', 'none');

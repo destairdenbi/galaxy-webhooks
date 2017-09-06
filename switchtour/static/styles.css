@@ -1,4 +1,4 @@
-#destairtour-overlay-div {
+#switchtour-overlay-div {
     position: fixed;
     top: 0px;
     left: 0px;
@@ -7,7 +7,7 @@
     height: 100%;
 }
 
-#destairtour-qa-div {
+#switchtour-qa-div {
     background-color: #fff;
     position: fixed;
     top: 50%;
@@ -20,19 +20,19 @@
     text-align: center;
 }
 
-#destairtour-form-div {
+#switchtour-form-div {
     font-size: 14px;
     text-align: left;
     padding: 10px;
 }
 
-#destairtour-masthead-div {
+#switchtour-masthead-div {
     color: #fff;
     padding-bottom: 8px;
     padding-top: 5px;
 }
 
-#destairtour-masthead-div button {
+#switchtour-masthead-div button {
     color: #fff;
     font-size: 14px;
     background-color: #768fa5;
@@ -42,11 +42,11 @@
     padding: 0 14px;
 }
 
-#destairtour-masthead-div button:focus {
+#switchtour-masthead-div button:focus {
     outline: 0;
 }
 
-#destairtour-masthead-div button:active {
+#switchtour-masthead-div button:active {
     box-shadow: 0 0 #5c768c;
     transform: translateY(5px);
 }
