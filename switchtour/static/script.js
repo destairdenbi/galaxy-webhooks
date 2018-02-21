@@ -32,11 +32,20 @@ $(document).ready(function() {
         },
 
         initialize: function () {
-            this.render();
-            this.registerEvents();
-            this.switchtour = {btntext: 'close'};
-            this.renderBtn();
-            this.invokeOverlay();
+            var self = this;
+            var url = gxy_root + 'api/webhooks/switchtour/get_data';
+            $.getJSON(url, function(data) {
+                if (data.success) {
+                    self.render();
+                    self.registerEvents();
+                    startTour();
+                } else {
+                    alert("please login first and generate api key");
+                    console.error('[ERROR] "' + url + '":\n' + data.error);
+                    return
+                }
+            });
+            
         },
 
         render: function() {
@@ -67,22 +76,26 @@ $(document).ready(function() {
 
         invokeOverlay: function() {
             var self = this;
-            if (this.switchtour.btntext == 'close'){
-                self.switchtour = {btntext: 'open'};    
-                self.removeOverlay();
+            if (this.switchtour.btntext == 'end'){
+                if (typeof tour !== 'undefined' && ! tour.ended()) {
+                    tour.end();
+                } else {
+                    self.switchtour = {btntext: 'restart'};
+                    self.removeOverlay();
+                    self.renderBtn();
+                }
             } else {
-                self.switchtour = {btntext: 'close'};
+                self.switchtour = {btntext: 'end'};
                 self.showOverlay();
+                self.renderBtn();
             }
-            self.renderBtn();
         },
 
         runSelection: function (){
             var value = this.$selectIn.filter(':checked').val();
             if(value){
                 this.$selectIn.prop('checked', false);
-                this.switchtour = {btntext: 'close'};
-                this.invokeOverlay();
+                this.removeOverlay();
                 giveTour(value);
             }
         },
@@ -92,13 +105,10 @@ $(document).ready(function() {
             this.parentElement.on('keydown',function(e) {
                 e.stopPropagation();
                 if ( e.which === 27 || e.keyCode === 27 ) {
-                    self.switchtour = {btntext: 'close'};
-                    self.invokeOverlay();
+                    self.switchtour = {btntext: 'restart'};
+                    self.renderBtn();
+                    self.removeOverlay();
                 }
-            });
-
-            this.$overlayDiv.on('click',function(e){
-                e.stopPropagation();
             });
 
             this.$submitBtn.on('click',function(e){
@@ -110,16 +120,22 @@ $(document).ready(function() {
         showOverlay: function() {
             $('#switchtour-overlay-div').show();
             $('#left').css('filter', 'blur(5px)');
+            $('#left').css('pointer-events', 'none');
             $('#center').css('filter', 'blur(5px)');
+            $('#center').css('pointer-events', 'none');
             $('#right').css('filter', 'blur(5px)');
+            $('#right').css('pointer-events', 'none');
         },
 
         /** Remove the search overlay */
         removeOverlay: function() {
             $('#switchtour-overlay-div').hide();
             $('#left').css('filter', 'none');
+            $('#left').css('pointer-events', 'auto');
             $('#center').css('filter', 'none');
+            $('#center').css('pointer-events', 'auto');
             $('#right').css('filter', 'none');
+            $('#right').css('pointer-events', 'auto');
         },
 
     });
@@ -129,6 +145,15 @@ $(document).ready(function() {
 
         onEnd: function(){
             sessionStorage.removeItem('activeGalaxyTour');
+            var step = tour.getStep(tour.getCurrentStep()+1);
+            if (typeof step == 'undefined') {
+                startTour();
+            } else {
+                tourOverlay.switchtour = {btntext: 'restart'};
+                tourOverlay.renderBtn();
+                tourOverlay.removeOverlay();
+                alert("abort");
+            }
         },
 
         delay: 150,
@@ -136,7 +161,7 @@ $(document).ready(function() {
         orphan: true,
 
         onNext: function(){
-            if (tour.getCurrentStep() == 0){
+            if (tour.getCurrentStep() == -1){
                 tour.end();
                 startTour();
             }
@@ -176,26 +201,50 @@ $(document).ready(function() {
             tour = new Tour(_.extend({
                 steps: tourdata.steps,
             }, tour_opts));
-            tour.init();
-            tour.goTo(0);
+            // tour.init(); does not work
+            // tour.goTo(0); does not work
+            // tour.start(true); does not work
             tour.restart();
         });
     };
 
-    var startTour = function(){
-        var url = gxy_root + 'api/tours/';
+    var startTour = function() {
+        tourOverlay.switchtour = {btntext: 'end'};
+        tourOverlay.renderBtn();
+        tourOverlay.showOverlay();
+
+        var url = gxy_root + 'api/webhooks/switchtour/get_data';
+        var lasttool;
+        var history;
+        $.ajax({
+            url: url,
+            dataType: 'json',
+            async: false,
+            success: function(data) {
+                if (data.success) {
+                    lasttool = data.lasttool;
+                    history = data.history;
+                } else {
+                    alert("this should not happen");
+                    console.error('[ERROR] "' + url + '":\n' + data.error);
+                }
+            }
+        });
+
+        // TODO get next tour ids via python
+        // if lasttour == URL -> download workflow
+        url = gxy_root + 'api/tours/';
         $.getJSON(url, function(data) {
             var items = [];
-            for(var i in data) {
+            for(var i in data) { //according to data.lasttour from init.py
                 items.push(data[i].id);
             }
             tourOverlay.renderForm(items);
-            tourOverlay.invokeOverlay();
+            alert(lasttour);
         });
     }
 
-    var gxy_root = typeof Galaxy === "undefined" ? '/' : Galaxy.root;
+    var gxy_root = typeof Galaxy === 'undefined' ? '/' : Galaxy.root;
     var tour;
     var tourOverlay = new TourOverlayView();
-    startTour();
 });
