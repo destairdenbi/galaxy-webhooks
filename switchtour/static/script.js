@@ -11,6 +11,7 @@ $(document).ready(function() {
                 '<div id="switchtour-qa-div">Please select:' +
                     '<div id="switchtour-form-div"></div>' +
                     '<button id="switchtour-submit-btn">Submit</button>' +
+                    '<button id="download-btn">Download Workflow</button>' +
                 '</div>' +
             '</div>' 
         ),
@@ -56,6 +57,7 @@ $(document).ready(function() {
             this.$mastheadDiv = $('#switchtour-masthead-div');
             this.$formDiv = $('#switchtour-form-div');
             this.$submitBtn = $('#switchtour-submit-btn');
+            this.$downloadBtn = $('#download-btn');
         },
 
         renderBtn: function() {
@@ -100,6 +102,20 @@ $(document).ready(function() {
             }
         },
 
+        downloadWorkflow: function(data) {
+            var blob = new Blob([JSON.stringify(data)], {type: "text/txt"});
+            if(window.navigator.msSaveOrOpenBlob) {
+                window.navigator.msSaveBlob(blob);
+            } else {
+                var elem = window.document.createElement('a');
+                elem.href = window.URL.createObjectURL(blob);
+                elem.title
+                document.body.appendChild(elem);
+                elem.click();
+                document.body.removeChild(elem);
+            }
+        },
+
         registerEvents: function() {
             var self = this;
             this.parentElement.on('keydown',function(e) {
@@ -114,6 +130,11 @@ $(document).ready(function() {
             this.$submitBtn.on('click',function(e){
                 e.stopPropagation();
                 self.runSelection();
+            });
+
+            this.$downloadBtn.on('click',function(e){
+                e.stopPropagation();
+                self.downloadWorkflow(workflow);
             });
         },
 
@@ -152,7 +173,7 @@ $(document).ready(function() {
                 tourOverlay.switchtour = {btntext: 'restart'};
                 tourOverlay.renderBtn();
                 tourOverlay.removeOverlay();
-                alert("abort");
+                alert("Aborted");
             }
         },
 
@@ -214,8 +235,6 @@ $(document).ready(function() {
         tourOverlay.showOverlay();
 
         var url = gxy_root + 'api/webhooks/switchtour/get_data';
-        var lasttool;
-        var history;
         $.ajax({
             url: url,
             dataType: 'json',
@@ -223,9 +242,9 @@ $(document).ready(function() {
             success: function(data) {
                 if (data.success) {
                     lasttool = data.lasttool;
-                    history = data.history;
+                    workflow = data.workflow;
                 } else {
-                    alert("this should not happen");
+                    alert("This should not happen - Please report");
                     console.error('[ERROR] "' + url + '":\n' + data.error);
                 }
             }
@@ -240,11 +259,12 @@ $(document).ready(function() {
                 items.push(data[i].id);
             }
             tourOverlay.renderForm(items);
-            alert(lasttour);
         });
     }
 
     var gxy_root = typeof Galaxy === 'undefined' ? '/' : Galaxy.root;
     var tour;
+    var workflow;
+    var lasttool;
     var tourOverlay = new TourOverlayView();
 });
