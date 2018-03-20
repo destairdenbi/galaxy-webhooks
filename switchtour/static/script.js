@@ -8,10 +8,16 @@ $(document).ready(function() {
 
         appTemplate: _.template(
             '<div id="switchtour-overlay-div">' +
-                '<div id="switchtour-qa-div">Please select:' +
+                '<div id="switchtour-qa-div">' +
+                    '<b>Please select</b>' +
                     '<div id="switchtour-form-div"></div>' +
                     '<button id="switchtour-submit-btn">Submit</button>' +
-                    '<button id="download-btn">Download Workflow</button>' +
+                    '<br><br>' +
+                    '<b>Download current</b>' +
+                    '<br>' +
+                    '<button id="download-wf-btn">Workflow</button>' +
+                    '&nbsp' +
+                    '<button id="download-cmd-btn">Commands</button>' +
                 '</div>' +
             '</div>' 
         ),
@@ -57,7 +63,8 @@ $(document).ready(function() {
             this.$mastheadDiv = $('#switchtour-masthead-div');
             this.$formDiv = $('#switchtour-form-div');
             this.$submitBtn = $('#switchtour-submit-btn');
-            this.$downloadBtn = $('#download-btn');
+            this.$downloadWFbtn = $('#download-wf-btn');
+            this.$downloadCMDbtn = $('#download-cmd-btn');
         },
 
         renderBtn: function() {
@@ -102,18 +109,22 @@ $(document).ready(function() {
             }
         },
 
-        downloadWorkflow: function(data) {
-            var blob = new Blob([JSON.stringify(data)], {type: "text/txt"});
-            if(window.navigator.msSaveOrOpenBlob) {
-                window.navigator.msSaveBlob(blob);
-            } else {
-                var elem = window.document.createElement('a');
-                elem.href = window.URL.createObjectURL(blob);
-                elem.title
-                document.body.appendChild(elem);
-                elem.click();
-                document.body.removeChild(elem);
-            }
+        downloadString: function(data) {
+            blob = new Blob([data], {type: "application/octet-stream"});
+            var e = document.createElement("a");
+            document.body.appendChild(e);
+            e.href = window.URL.createObjectURL(blob);
+            e.click();
+            document.body.removeChild(a);
+        },
+
+        downloadJson: function(data) {
+            blob = new Blob([JSON.stringify(data)], {type: "application/octet-stream"});
+            var e = document.createElement("a");
+            document.body.appendChild(e);
+            e.href = window.URL.createObjectURL(blob);
+            e.click();
+            document.body.removeChild(a);
         },
 
         registerEvents: function() {
@@ -132,9 +143,14 @@ $(document).ready(function() {
                 self.runSelection();
             });
 
-            this.$downloadBtn.on('click',function(e){
+            this.$downloadWFbtn.on('click',function(e){
                 e.stopPropagation();
-                self.downloadWorkflow(workflow);
+                self.downloadJson(workflow);
+            });
+
+            this.$downloadCMDbtn.on('click',function(e){
+                e.stopPropagation();
+                self.downloadString(commands);
             });
         },
 
@@ -243,6 +259,7 @@ $(document).ready(function() {
                 if (data.success) {
                     lasttool = data.lasttool;
                     workflow = data.workflow;
+                    commands = data.commands;
                 } else {
                     alert("This should not happen - Please report");
                     console.error('[ERROR] "' + url + '":\n' + data.error);
@@ -266,5 +283,6 @@ $(document).ready(function() {
     var tour;
     var workflow;
     var lasttool;
+    var commands;
     var tourOverlay = new TourOverlayView();
 });
