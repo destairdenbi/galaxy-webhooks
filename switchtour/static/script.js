@@ -9,7 +9,7 @@ $(document).ready(function() {
         appTemplate: _.template(
             '<div id="switchtour-overlay-div">' +
                 '<div id="switchtour-qa-div">' +
-                    '<b>Please select</b>' +
+                    '<div id="switchtour-text-div"></div>' +
                     '<div id="switchtour-form-div"></div>' +
                     '<button id="switchtour-submit-btn">Submit</button>' +
                     '<br><br>' +
@@ -23,7 +23,11 @@ $(document).ready(function() {
         ),
 
         formTemplate: _.template(
-            '<input type="radio" name="switchtour-select-in" value="<%= formvalue %>"><%= formvalue %><br>'
+            '<input type="radio" name="switchtour-select-in" value="<%= formvalue %>"><%= formdescription %><br>'
+        ),
+
+        textTemplate: _.template(
+            '<b> <%= text1 %> </b><br> <%= text2 %>'
         ),
 
         mastheadTemplate: _.template(
@@ -47,7 +51,7 @@ $(document).ready(function() {
                     self.registerEvents();
                     startTour();
                 } else {
-                    alert("please login first and generate api key");
+                    alert("Please login first");
                     console.error('[ERROR] "' + url + '":\n' + data.error);
                     return
                 }
@@ -62,6 +66,7 @@ $(document).ready(function() {
             this.$overlayDiv = $('#switchtour-overlay-div');
             this.$mastheadDiv = $('#switchtour-masthead-div');
             this.$formDiv = $('#switchtour-form-div');
+            this.$textDiv = $('#switchtour-text-div');
             this.$submitBtn = $('#switchtour-submit-btn');
             this.$downloadWFbtn = $('#download-wf-btn');
             this.$downloadCMDbtn = $('#download-cmd-btn');
@@ -71,16 +76,21 @@ $(document).ready(function() {
             this.$mastheadDiv.html(this.btnTemplate({btntext: this.switchtour.btntext}));
         },
 
-        renderForm: function (values) {
-            console.log(values);
-            console.log(values.length);
+        renderForm: function (values, descriptions) {
             var self = this;
             var o = '';
-            $.each(values, function() {
-                o = o.concat(self.formTemplate({formvalue: this}));
-            });
+            for (var i = 0; i < values.length; i++) {
+                o = o.concat(self.formTemplate({formvalue: values[i], formdescription: descriptions[i]}));
+            }
             self.$formDiv.html(o);
+            if (! o) {
+                self.$submitBtn.hide();
+            }
             self.$selectIn = $("input[name='switchtour-select-in']");
+        },
+
+        renderText: function (text1,text2) {
+            this.$textDiv.html(this.textTemplate({text1: text1, text2: text2}));
         },
 
         invokeOverlay: function() {
@@ -267,15 +277,46 @@ $(document).ready(function() {
             }
         });
 
-        // TODO get next tour ids via python
-        // if lasttour == URL -> download workflow
         url = gxy_root + 'api/tours/';
         $.getJSON(url, function(data) {
-            var items = [];
-            for(var i in data) { //according to data.lasttour from init.py
-                items.push(data[i].id);
+            var values = [];
+            var descriptions = [];
+            var tmp = 1;
+            for(var i in data) {
+                switch(lasttour) {
+                    case 1:
+                        tmp = 2;
+                        if (/^tour_2/.test(data[i].id)){
+                            values.push(data[i].id);
+                            descriptions.push(data[i].description)
+                        }
+                        break;
+                    case 2:
+                        tmp = 3;
+                        if (/^tour_3/.test(data[i].id)){
+                            values.push(data[i].id);
+                            descriptions.push(data[i].description)
+                        }
+                        break;
+                    case 3:
+                        tmp = 4;
+                        break;
+                    default:
+                        tmp = 1;
+                        if (/^tour_1/.test(data[i].id)){
+                            values.push(data[i].id);
+                            descriptions.push(data[i].description)
+                        }
+                }
             }
-            tourOverlay.renderForm(items);
+            lasttour = tmp;
+            if (lasttour == 4){
+                tourOverlay.renderText("Ciao Cacao!","Please don't forget to");
+                tourOverlay.renderForm([], []);
+            } else {
+                tourOverlay.renderText("Please select","")
+                tourOverlay.renderForm(values, descriptions);
+            }
         });
     }
 
@@ -284,5 +325,6 @@ $(document).ready(function() {
     var workflow;
     var lasttool;
     var commands;
+    var lasttour;
     var tourOverlay = new TourOverlayView();
 });
