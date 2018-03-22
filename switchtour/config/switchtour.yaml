@@ -4,7 +4,7 @@ type:
 activate: true
 
 icon: fa-play
-tooltip: 'switchtour'
+tooltip: 'de.STAIR Workflow generator'
 
 function: >
   $.getJSON("/api/webhooks/", function( data ) {
