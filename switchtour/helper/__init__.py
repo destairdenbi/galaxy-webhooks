@@ -29,7 +29,13 @@ def main(trans, webhook):
         
         #apikey = trans.user.api_keys[0].key
         apikey = UserManager(trans.app).get_or_create_valid_api_key(trans.user).key
-        gi = galaxy.GalaxyInstance(url='http://127.0.0.1:8080', key=apikey)
+        gi = ''
+        try:
+            gi = galaxy.GalaxyInstance(url='http://127.0.0.1:80', key=apikey)
+            gi.workflows.get_workflows()
+        except Exception:
+            gi = galaxy.GalaxyInstance(url='http://127.0.0.1:8080', key=apikey)
+        
         for i in gi.workflows.get_workflows():
             gi.workflows.delete_workflow(i['id'])
 
@@ -78,6 +84,6 @@ def main(trans, webhook):
                 gi.workflows.delete_workflow(i['id'])
 
     except Exception as e:
-        error = str(e)
-        print(error)
+        print str(e)
+
     return {'success': not error, 'error': error, 'lasttour': lasttool, 'workflow': workflow, 'commands': commands}
