@@ -7,9 +7,8 @@ git clone https://github.com/galaxyproject/galaxy.git $GALAXY_ROOT
 cd $GALAXY_ROOT
 git checkout v17.05
 ```
-Add also
+Install
  * https://github.com/destairdenbi/guided_tours
- * https://github.com/destairdenbi/workflows
 
 # Installation
 ```
