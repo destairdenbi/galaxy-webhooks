@@ -107,6 +107,8 @@ $(document).ready(function() {
                 self.switchtour = {btntext: 'end'};
                 self.showOverlay();
                 self.renderBtn();
+				lasttour = null;
+				startTour();
             }
         },
 
@@ -115,26 +117,35 @@ $(document).ready(function() {
             if(value){
                 this.$selectIn.prop('checked', false);
                 this.removeOverlay();
-                giveTour(value);
+				if(lasttour == 0){
+					tourprefix = value;
+					startTour();
+				} else {
+	                giveTour(value);
+				}
             }
         },
 
         downloadString: function(data) {
-            blob = new Blob([data], {type: "application/octet-stream"});
-            var e = document.createElement("a");
-            document.body.appendChild(e);
-            e.href = window.URL.createObjectURL(blob);
-            e.click();
-            document.body.removeChild(a);
+			if (lasttour > 0) {
+            	blob = new Blob([data], {type: "application/octet-stream"});
+				var e = document.createElement("a");
+				document.body.appendChild(e);
+				e.href = window.URL.createObjectURL(blob);
+				e.click();
+				document.body.removeChild(a);
+			}
         },
 
         downloadJson: function(data) {
-            blob = new Blob([JSON.stringify(data)], {type: "application/octet-stream"});
-            var e = document.createElement("a");
-            document.body.appendChild(e);
-            e.href = window.URL.createObjectURL(blob);
-            e.click();
-            document.body.removeChild(a);
+			if (lasttour > 0) {
+	            blob = new Blob([JSON.stringify(data)], {type: "application/octet-stream"});
+    	        var e = document.createElement("a");
+        	    document.body.appendChild(e);
+	            e.href = window.URL.createObjectURL(blob);
+    	        e.click();
+        	    document.body.removeChild(a);
+			}
         },
 
         registerEvents: function() {
@@ -174,7 +185,6 @@ $(document).ready(function() {
             $('#right').css('pointer-events', 'none');
         },
 
-        /** Remove the search overlay */
         removeOverlay: function() {
             $('#switchtour-overlay-div').hide();
             $('#left').css('filter', 'none');
@@ -277,47 +287,34 @@ $(document).ready(function() {
             }
         });
 
-        url = gxy_root + 'api/tours/';
-        $.getJSON(url, function(data) {
-            var values = [];
-            var descriptions = [];
-            var tmp = 1;
-            for(var i in data) {
-                switch(lasttour) {
-                    case 1:
-                        tmp = 2;
-                        if (/^tour_2/.test(data[i].id)){
-                            values.push(data[i].id);
-                            descriptions.push(data[i].description)
-                        }
-                        break;
-                    case 2:
-                        tmp = 3;
-                        if (/^tour_3/.test(data[i].id)){
-                            values.push(data[i].id);
-                            descriptions.push(data[i].description)
-                        }
-                        break;
-                    case 3:
-                        tmp = 4;
-                        break;
-                    default:
-                        tmp = 1;
-                        if (/^tour_1/.test(data[i].id)){
-                            values.push(data[i].id);
-                            descriptions.push(data[i].description)
-                        }
-                }
-            }
-            lasttour = tmp;
-            if (lasttour == 4){
-                tourOverlay.renderText("Ciao Cacao!","Please don't forget to");
-                tourOverlay.renderForm([], []);
-            } else {
-                tourOverlay.renderText("Please select","")
-                tourOverlay.renderForm(values, descriptions);
-            }
-        });
+		if (lasttour == null) {
+			tourOverlay.renderText("Welcome to de.STAIR workflow generator","Which type of analysis you want to perform?");
+			tourOverlay.renderForm(["dgea","visualization"], ["Differential gene expression analysis","Visulization"]);
+			lasttour = 0;
+		} else {
+			url = gxy_root + 'api/tours/';
+			$.getJSON(url, function(data) {
+				var values = [];
+				var descriptions = [];
+				var tmp;
+				var regex;
+				lasttour += 1;
+				//regex = new RegExp("^" + "tour_" + lasttour , "g");
+				regex = new RegExp("^" + tourprefix + "_tour_" + lasttour , "g");
+				for(var i in data) {
+					if (regex.test(data[i].id)){
+						values.push(data[i].id);
+						descriptions.push(data[i].description);
+					}
+				}
+				if (values.length == 0){
+					tourOverlay.renderText("Ciao Cacao!","Please don't forget to");
+				} else {
+					tourOverlay.renderText("Please select","")				
+				}
+				tourOverlay.renderForm(values, descriptions);
+			});
+		}
     }
 
     var gxy_root = typeof Galaxy === 'undefined' ? '/' : Galaxy.root;
@@ -326,5 +323,6 @@ $(document).ready(function() {
     var lasttool;
     var commands;
     var lasttour;
+	var tourprefix;
     var tourOverlay = new TourOverlayView();
 });
