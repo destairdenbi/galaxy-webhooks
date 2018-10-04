@@ -197,7 +197,7 @@ $(document).ready(function() {
 
     });
 
-    var tour_opts = { 
+    var tour_opts = {
         storage: window.sessionStorage,
 
         onEnd: function(){
@@ -218,10 +218,30 @@ $(document).ready(function() {
         orphan: true,
 
         onNext: function(){
-            if (tour.getCurrentStep() == -1){
+			var tourstep = tour.getCurrentStep();
+            if (tourstep == -1){
                 tour.end();
                 startTour();
             }
+			// else {
+				// var url = gxy_root + 'api/webhooks/switchtour/get_data';
+				// var finished = 0;
+				// while (finished == 0){
+					// $.ajax({
+					// 	url: url,
+					// 	dataType: 'json',
+					// 	async: false,
+					// 	success: function(data) {
+					// 		if (data.success) {
+					// 			finished = data.finished;
+					// 		} else {
+					// 			alert("This should not happen - Please report");
+					// 			console.error('[ERROR] "' + url + '":\n' + data.error);
+					// 		}
+					// 	}
+					// });
+				//}
+			// }
         }
     };
 
@@ -299,10 +319,13 @@ $(document).ready(function() {
 				var tmp;
 				var regex;
 				lasttour += 1;
-				//regex = new RegExp("^" + "tour_" + lasttour , "g");
-				regex = new RegExp("^" + tourprefix + "_tour_" + lasttour , "g");
+				regex = new RegExp(tourprefix + "_tour_" + lasttour);
+				alert(lasttour + " " + regex)
+
 				for(var i in data) {
+					alert(data[i].id)
 					if (regex.test(data[i].id)){
+						alert("found" + data[i].id)
 						values.push(data[i].id);
 						descriptions.push(data[i].description);
 					}
