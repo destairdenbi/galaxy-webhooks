@@ -287,10 +287,9 @@ $(document).ready(function() {
 
     var startTour = function() {
         tourOverlay.switchtour = {btntext: 'end'};
-        tourOverlay.renderBtn();
         tourOverlay.showOverlay();
-		tourOverlay.renderText("Loading..","");
-		tourOverlay.renderForm([""], [""]);
+		tourOverlay.renderText("loading..","");
+		tourOverlay.renderForm([], []);
 
 		if (lasttour == null) {
 			tourOverlay.renderText("Welcome to de.STAIR workflow generator","Which type of analysis you want to perform?");
@@ -307,6 +306,7 @@ $(document).ready(function() {
 						lasttool = data.lasttool;
 						workflow = data.workflow;
 						commands = data.commands;
+						finished = data.finished;
 					} else {
 						alert("This should not happen - Please report");
 						console.error('[ERROR] "' + url + '":\n' + data.error);
@@ -322,21 +322,26 @@ $(document).ready(function() {
 				var regex;
 				lasttour += 1;
 				regex = new RegExp(tourprefix + "_tour_" + lasttour);
+				alert(lasttour + " " + regex)
+
 				for(var i in data) {
+					alert(data[i].id)
 					if (regex.test(data[i].id)){
+						alert("found" + data[i].id)
 						values.push(data[i].id);
 						descriptions.push(data[i].description);
 					}
 				}
 				if (values.length == 0){
 					tourOverlay.renderText("Ciao Cacao!","Please don't forget to");
-					tourOverlay.renderForm([""], [""]);
 				} else {
-					tourOverlay.renderText("Please select","")				
-					tourOverlay.renderForm(values, descriptions);
+					tourOverlay.renderText("Please select","");
 				}
+				tourOverlay.renderForm(values, descriptions);
 			});
 		}
+
+		tourOverlay.renderBtn();
     }
 
     var gxy_root = typeof Galaxy === 'undefined' ? '/' : Galaxy.root;
@@ -344,6 +349,7 @@ $(document).ready(function() {
     var workflow;
     var lasttool;
     var commands;
+	var finished;
     var lasttour;
 	var tourprefix;
     var tourOverlay = new TourOverlayView();

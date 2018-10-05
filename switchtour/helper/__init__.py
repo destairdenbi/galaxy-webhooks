@@ -34,17 +34,16 @@ def main(trans, webhook):
         job_ids = []
 
         for i in history.contents_iter():
-            if i.creating_job.check_if_output_datasets_deleted() == True:
-                continue
-            lasttool = i.creating_job.get_tool_id()
-            #print(i.creating_job.get_state()) #running #ok
-            #print(i.creating_job.exit_code)   #none    #0
             if i.creating_job.finished is False:
                 finished = 0
-            if lasttool == 'upload1':
-                continue
-            job_ids.append(trans.app.security.encode_id(i.creating_job.get_id()))
-            commands = commands + "\n" + i.creating_job.get_command_line() if commands else i.creating_job.get_command_line()
+            lasttool = i.creating_job.get_tool_id()
+            if (lasttool == 'upload1') or (i.creating_job.check_if_output_datasets_deleted() is True):
+                continue    
+            #print(i.creating_job.get_state()) #running #ok
+            #print(i.creating_job.exit_code)   #none    #0
+            if (i.creating_job.exit_code == 'none') or (i.creating_job.exit_code == 0):
+                job_ids.append(trans.app.security.encode_id(i.creating_job.get_id()))
+                commands = commands + "\n" + i.creating_job.get_command_line() if commands else i.creating_job.get_command_line()
 
         for i in gi.workflows.get_workflows():
             gi.workflows.delete_workflow(i['id'])
