@@ -1,3 +1,5 @@
+//var CurrentHistoryView = require( 'mvc/history/history-view-edit-current' ).CurrentHistoryView;
+
 $(document).ready(function() {
 
     var TourOverlayView = Backbone.View.extend({
@@ -18,6 +20,8 @@ $(document).ready(function() {
                     '<button id="download-wf-btn">Workflow</button>' +
                     '&nbsp' +
                     '<button id="download-cmd-btn">Commands</button>' +
+					'&nbsp' +
+                    '<button id="download-bib-btn">Citations</button>' +
                 '</div>' +
             '</div>' 
         ),
@@ -49,6 +53,7 @@ $(document).ready(function() {
                 if (data.success) {
                     self.render();
                     self.registerEvents();
+					createHistory();
                     startTour();
                 } else {
                     alert("Please login first");
@@ -70,6 +75,7 @@ $(document).ready(function() {
             this.$submitBtn = $('#switchtour-submit-btn');
             this.$downloadWFbtn = $('#download-wf-btn');
             this.$downloadCMDbtn = $('#download-cmd-btn');
+			this.$downloadBIBbtn = $('#download-bib-btn');
         },
 
         renderBtn: function() {
@@ -83,7 +89,7 @@ $(document).ready(function() {
                 o = o.concat(self.formTemplate({formvalue: values[i], formdescription: descriptions[i]}));
             }
             self.$formDiv.html(o);
-            if (! o) {
+            if (lasttour > 0 && ! o) {
                 self.$submitBtn.hide();
             }
             self.$selectIn = $("input[name='switchtour-select-in']");
@@ -95,19 +101,21 @@ $(document).ready(function() {
 
         invokeOverlay: function() {
             var self = this;
-            if (this.switchtour.btntext == 'end'){
+            if (this.switchtour.btntext == 'Quit & purge'){
                 if (typeof tour !== 'undefined' && ! tour.ended()) {
                     tour.end();
                 } else {
-                    self.switchtour = {btntext: 'restart'};
+                    self.switchtour = {btntext: 'Restart'};
                     self.removeOverlay();
                     self.renderBtn();
+					purgeHistory();
                 }
             } else {
-                self.switchtour = {btntext: 'end'};
+                self.switchtour = {btntext: 'Quit & purge'};
                 self.showOverlay();
                 self.renderBtn();
 				lasttour = null;
+				createHistory();
 				startTour();
             }
         },
@@ -153,9 +161,10 @@ $(document).ready(function() {
             this.parentElement.on('keydown',function(e) {
                 e.stopPropagation();
                 if ( e.which === 27 || e.keyCode === 27 ) {
-                    self.switchtour = {btntext: 'restart'};
+                    self.switchtour = {btntext: 'Restart'};
                     self.renderBtn();
                     self.removeOverlay();
+					purgeHistory();
                 }
             });
 
@@ -166,12 +175,17 @@ $(document).ready(function() {
 
             this.$downloadWFbtn.on('click',function(e){
                 e.stopPropagation();
-                self.downloadJson(workflow);
+                self.downloadString(workflow);
             });
 
             this.$downloadCMDbtn.on('click',function(e){
                 e.stopPropagation();
                 self.downloadString(commands);
+            });
+
+			this.$downloadBIBbtn.on('click',function(e){
+                e.stopPropagation();
+                self.downloadString(bibtex);
             });
         },
 
@@ -206,10 +220,11 @@ $(document).ready(function() {
             if (typeof step == 'undefined') {
                 startTour();
             } else {
-                tourOverlay.switchtour = {btntext: 'restart'};
+                tourOverlay.switchtour = {btntext: 'Restart'};
                 tourOverlay.renderBtn();
                 tourOverlay.removeOverlay();
                 alert("Aborted");
+				purgeHistory();
             }
         },
 
@@ -286,11 +301,11 @@ $(document).ready(function() {
     };
 
     var startTour = function() {
-        tourOverlay.switchtour = {btntext: 'end'};
+		tourOverlay.switchtour = {btntext: 'Quit & purge'};
         tourOverlay.renderBtn();
         tourOverlay.showOverlay();
 		tourOverlay.renderText("Loading..","");
-		tourOverlay.renderForm([""], [""]);
+		tourOverlay.renderForm([], []);
 
 		if (lasttour == null) {
 			tourOverlay.renderText("Welcome to de.STAIR workflow generator","Which type of analysis you want to perform?");
@@ -307,6 +322,7 @@ $(document).ready(function() {
 						lasttool = data.lasttool;
 						workflow = data.workflow;
 						commands = data.commands;
+						bibtex = data.bibtex;
 					} else {
 						alert("This should not happen - Please report");
 						console.error('[ERROR] "' + url + '":\n' + data.error);
@@ -329,8 +345,8 @@ $(document).ready(function() {
 					}
 				}
 				if (values.length == 0){
-					tourOverlay.renderText("Ciao Cacao!","Please don't forget to");
-					tourOverlay.renderForm([""], [""]);
+					tourOverlay.renderText("Ciao Cacao!","History will be purged! Please don't forget to");
+					tourOverlay.renderForm([], []);
 				} else {
 					tourOverlay.renderText("Please select","")				
 					tourOverlay.renderForm(values, descriptions);
@@ -339,12 +355,48 @@ $(document).ready(function() {
 		}
     }
 
+	var purgeHistory = function() {
+		alert("Cleaning recent history..");
+		var url = gxy_root + 'api/webhooks/purgehistory/get_data';
+		$.ajax({
+			url: url,
+			dataType: 'json',
+			async: false,
+			success: function(data) {
+				if (data.success) {
+					alert("History nuked!")
+				} else {
+					alert("This should not happen - Please report");
+					console.error('[ERROR] "' + url + '":\n' + data.error);
+				}
+			}
+		});
+		$('#history-refresh-button').click();
+	}
+
+	var createHistory = function() {
+		var url = gxy_root + 'api/webhooks/createhistory/get_data';
+		$.ajax({
+			url: url,
+			dataType: 'json',
+			async: false,
+			success: function(data) {
+				if (! data.success) {
+					alert("This should not happen - Please report");
+					console.error('[ERROR] "' + url + '":\n' + data.error);
+				}
+			}
+		});
+		$('#history-refresh-button').click();
+	}
+
     var gxy_root = typeof Galaxy === 'undefined' ? '/' : Galaxy.root;
     var tour;
     var workflow;
     var lasttool;
     var commands;
     var lasttour;
+	var bibtex;
 	var tourprefix;
     var tourOverlay = new TourOverlayView();
 });
