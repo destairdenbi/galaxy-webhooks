@@ -1,5 +1,3 @@
-//var CurrentHistoryView = require( 'mvc/history/history-view-edit-current' ).CurrentHistoryView;
-
 $(document).ready(function() {
 
     var TourOverlayView = Backbone.View.extend({
@@ -11,6 +9,7 @@ $(document).ready(function() {
         appTemplate: _.template(
             '<div id="switchtour-overlay-div">' +
                 '<div id="switchtour-qa-div">' +
+                    '<br>' +
                     '<div id="switchtour-text-div"></div>' +
                     '<div id="switchtour-form-div"></div>' +
                     '<button id="switchtour-submit-btn">Submit</button>' +
@@ -22,6 +21,8 @@ $(document).ready(function() {
                     '<button id="download-cmd-btn">Commands</button>' +
 					'&nbsp' +
                     '<button id="download-bib-btn">Citations</button>' +
+                    '<br><br>' +
+                    '<button id="switchtour-restart-btn">Restart workflow generator</button>' +
                 '</div>' +
             '</div>' 
         ),
@@ -51,6 +52,7 @@ $(document).ready(function() {
             var url = gxy_root + 'api/webhooks/switchtour/get_data';
             $.getJSON(url, function(data) {
                 if (data.success) {
+                    // setRnaSeqParameter();
                     self.render();
                     self.registerEvents();
 					createHistory();
@@ -60,8 +62,7 @@ $(document).ready(function() {
                     console.error('[ERROR] "' + url + '":\n' + data.error);
                     return
                 }
-            });
-            
+            });  
         },
 
         render: function() {
@@ -73,6 +74,7 @@ $(document).ready(function() {
             this.$formDiv = $('#switchtour-form-div');
             this.$textDiv = $('#switchtour-text-div');
             this.$submitBtn = $('#switchtour-submit-btn');
+            this.$restartBtn = $('#switchtour-restart-btn');
             this.$downloadWFbtn = $('#download-wf-btn');
             this.$downloadCMDbtn = $('#download-cmd-btn');
 			this.$downloadBIBbtn = $('#download-bib-btn');
@@ -89,10 +91,15 @@ $(document).ready(function() {
                 o = o.concat(self.formTemplate({formvalue: values[i], formdescription: descriptions[i]}));
             }
             self.$formDiv.html(o);
+            self.$selectIn = $("input[name='switchtour-select-in']");
+            //alert(lasttool + o)
             if (lasttour > 0 && ! o) {
                 self.$submitBtn.hide();
+                self.$restartBtn.show();
+            } else {
+                self.$submitBtn.show();
+                self.$restartBtn.hide();
             }
-            self.$selectIn = $("input[name='switchtour-select-in']");
         },
 
         renderText: function (text1,text2) {
@@ -173,6 +180,12 @@ $(document).ready(function() {
                 self.runSelection();
             });
 
+            this.$restartBtn.on('click',function(e){
+                e.stopPropagation();
+                lasttour = null;
+                startTour();
+            });
+
             this.$downloadWFbtn.on('click',function(e){
                 e.stopPropagation();
                 self.downloadString(workflow);
@@ -180,6 +193,7 @@ $(document).ready(function() {
 
             this.$downloadCMDbtn.on('click',function(e){
                 e.stopPropagation();
+                alert(commands);
                 self.downloadString(commands);
             });
 
@@ -220,11 +234,13 @@ $(document).ready(function() {
             if (typeof step == 'undefined') {
                 startTour();
             } else {
-                tourOverlay.switchtour = {btntext: 'Restart'};
-                tourOverlay.renderBtn();
+                //tourOverlay.switchtour = {btntext: 'Restart'};
+                //tourOverlay.renderBtn();
                 tourOverlay.removeOverlay();
                 alert("Aborted");
-				purgeHistory();
+                lasttour=null
+                startTour();
+				//purgeHistory();
             }
         },
 
@@ -308,8 +324,8 @@ $(document).ready(function() {
 		tourOverlay.renderForm([], []);
 
 		if (lasttour == null) {
-			tourOverlay.renderText("Welcome to de.STAIR workflow generator","Which type of analysis you want to perform?");
-			tourOverlay.renderForm(["dgea","visualization"], ["Differential gene expression analysis","Visulization"]);
+			tourOverlay.renderText("Welcome to de.STAIR workflow generator","Which type of analysis do you want to perform?");
+			tourOverlay.renderForm(["dgea","visualization"], ["Differential gene expression analysis","Visualization"]);
 			lasttour = 0;
 		} else {
 			var url = gxy_root + 'api/webhooks/switchtour/get_data';
@@ -345,7 +361,7 @@ $(document).ready(function() {
 					}
 				}
 				if (values.length == 0){
-					tourOverlay.renderText("Ciao Cacao!","History will be purged! Please don't forget to");
+					tourOverlay.renderText("Ciao Cacao!","You successfully completed this tour!<br>Please don't forget to ...");
 					tourOverlay.renderForm([], []);
 				} else {
 					tourOverlay.renderText("Please select","")				
@@ -389,6 +405,21 @@ $(document).ready(function() {
 		});
 		$('#history-refresh-button').click();
 	}
+
+    var setRnaSeqParameter = function() {
+        var url = gxy_root + 'api/webhooks/setrnaseqparameter/get_data';
+		$.ajax({
+			url: url,
+			dataType: 'json',
+			async: false,
+			success: function(data) {
+				if (! data.success) {
+					alert("This should not happen - Please report");
+					console.error('[ERROR] "' + url + '":\n' + data.error);
+				}
+			}
+		});
+    }
 
     var gxy_root = typeof Galaxy === 'undefined' ? '/' : Galaxy.root;
     var tour;
