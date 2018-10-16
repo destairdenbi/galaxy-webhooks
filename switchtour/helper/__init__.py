@@ -37,7 +37,7 @@ def main(trans, webhook):
         history_id = trans.app.security.encode_id(history.id)
         job_ids = []
         citations = []
-        	
+        
         for i in history.contents_iter():
             if i.creating_job.finished is False:
                 finished = 0
@@ -45,6 +45,10 @@ def main(trans, webhook):
 
             b = CitationsManager(trans.app).citations_for_tool_ids([lasttool])
             if b:
+                if filter(lambda c: c.equals(b[0]) is True, citations):
+                    continue
+                citations.append(b[0])
+                
                 bib = b[0].to_bibtex()
                 if b[0].has_doi and re.search(ur'title\s*=\s*\{.+',bib) is None:
                     try:
@@ -57,7 +61,7 @@ def main(trans, webhook):
                             bib = tmp
                     except Exception:
                         pass
-                bibtex = bibtex + "\n" + bib
+                bibtex = bibtex + "\n\n" + bib.lstrip()
                 
             if (lasttool == 'upload1') or (i.creating_job.check_if_output_datasets_deleted() is True):
                 continue
@@ -92,4 +96,4 @@ def main(trans, webhook):
         print(error)
         return {'success': not error, 'error': error}
 
-    return {'success': not error, 'error': error, 'lasttour': lasttool, 'workflow': workflow, 'commands': commands, 'finished': finished, 'bibtex': bibtex}
+    return {'success': not error, 'error': error, 'lasttool': lasttool, 'workflow': workflow, 'commands': commands, 'finished': finished, 'bibtex': bibtex}

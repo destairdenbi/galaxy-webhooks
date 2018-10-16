@@ -1,0 +1,4 @@
+name: setrnaseqparameter
+type:
+  - masthead
+activate: false
