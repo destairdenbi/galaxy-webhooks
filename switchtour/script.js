@@ -53,7 +53,6 @@ $(document).ready(function() {
         registerEvents: function() {
             var self = this;
 
-            // solution without button template:
             // this.parent.find('ul #switchtour a').on('click', function(e) {
             this.$el.on('click', function(e) {
                 e.preventDefault();
@@ -74,30 +73,23 @@ $(document).ready(function() {
                 e.stopPropagation();
                 alert('clicked');
             });
-        },
 
-        invokeMenu: function() {
-            var self = this;
+            $('#switchtour-workflow').on('click',function(e){
+                e.preventDefault();
+                e.stopPropagation();
+                self.download('workflow.yaml',workflow);
+            });
 
-            $.getJSON(Galaxy.root + 'api/webhooks/switchtour/data', function(data) {
-                if (data.success) {
-                    if ($('#switchtour-menu').is(':visible') ){
-                        self.$el.html(self.button({text: 'Restart'}));
-                        self.removeMenu();
-                    } else {
-                        self.$el.html(self.button({text: 'Abort'}));
-                        if (data.lasttool) {
-                            $('#switchtour-menu').html(self.menu({header: 'header', text: 'text'}));
-                            var choices = '';
-                            choices = choices.concat(self.checkbox({value: 'value', description: 'description'}));
-                            $('#switchtour-checkbox').html(choices);
-                        }
-                        self.showMenu();
-                    }
-                } else {
-                    alert("Please login first");
-                    console.error('[ERROR] "' + url + '":\n' + data.error);
-                }
+            $('#switchtour-cmds').on('click',function(e){
+                e.preventDefault();
+                e.stopPropagation();
+                self.download('commands.txt',cmds);
+            });
+
+            $('#switchtour-bibtex').on('click',function(e){
+                e.preventDefault();
+                e.stopPropagation();
+                self.download('citations.bib',bibtex);
             });
         },
 
@@ -113,7 +105,50 @@ $(document).ready(function() {
             $('#switchtour-menu').hide();
         },
 
+        invokeMenu: function() {
+            var self = this;
+
+            $.getJSON(Galaxy.root + 'api/webhooks/switchtour/data', {
+                param1: 'arg1',
+                param2: 'arg2',
+            }, function(data) {
+                if (data.success) {
+                    if ($('#switchtour-menu').is(':visible') ){
+                        self.$el.html(self.button({text: 'Restart'}));
+                        self.removeMenu();
+                    } else {
+                        self.$el.html(self.button({text: 'Abort'}));
+                        if (data.lasttool) {
+                            $('#switchtour-menu').html(self.menu({header: 'header', text: 'text'}));
+                            var choices = '';
+                            // for (var i = 0; i < values.length; i++) {
+                            choices = choices.concat(self.checkbox({value: 'value', description: 'description'}));
+                            $('#switchtour-checkbox').html(choices);
+                        }
+                        self.showMenu();
+                    }
+                } else {
+                    alert("Please login first");
+                    console.error('[ERROR] "' + url + '":\n' + data.error);
+                }
+            });
+        },
+
+        download: function(filename, data) {
+            alert(filename);
+            var blob = new Blob([data], {type: 'application/octet-stream'});
+            var e = document.createElement('a');
+            // document.body.appendChild(e);
+            e.href = window.URL.createObjectURL(blob);
+            e.download = filename;
+            e.click();
+            // document.body.removeChild(a);
+        },
+
     });
 
     var switchtour = new SwitchtourView();
+    var workflow = '';
+    var bibtex = '';
+    var cmds = '';
 });
