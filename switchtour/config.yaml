@@ -1,0 +1,7 @@
+id: switchtour
+type:
+  - masthead
+activate: true
+
+icon: fa-play
+tooltip: 'de.STAIR Workflow generator'

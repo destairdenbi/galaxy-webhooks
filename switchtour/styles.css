@@ -1,13 +1,5 @@
-#switchtour-overlay-div {
-    position: fixed;
-    top: 0px;
-    left: 0px;
+#switchtour-menu {
     z-index: 2;
-    width: 100%;
-    height: 100%;
-}
-
-#switchtour-qa-div {
     background-color: #fff;
     position: fixed;
     top: 50%;
@@ -20,19 +12,13 @@
     text-align: center;
 }
 
-#switchtour-form-div {
-    font-size: 14px;
-    text-align: left;
-    padding: 10px;
-}
-
-#switchtour-masthead-div {
+#switchtour-masthead {
     color: #fff;
     padding-bottom: 8px;
     padding-top: 5px;
 }
 
-#switchtour-masthead-div button {
+#switchtour-masthead button {
     color: #fff;
     font-size: 14px;
     background-color: #768fa5;
@@ -42,11 +28,11 @@
     padding: 0 14px;
 }
 
-#switchtour-masthead-div button:focus {
+#switchtour-masthead button:focus {
     outline: 0;
 }
 
-#switchtour-masthead-div button:active {
+#switchtour-masthead button:active {
     box-shadow: 0 0 #5c768c;
     transform: translateY(5px);
 }
