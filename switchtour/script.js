@@ -53,7 +53,7 @@ $(document).ready(function() {
 
         // builtin alternative to registerEvents
         // events: {
-        //     'click #switchtour-button': 'invokeMenu'
+        //     'click #switchtour-button': 'invoke'
         // },
         register: function() {
             var self = this;
@@ -61,20 +61,25 @@ $(document).ready(function() {
             // this.parent.find('ul #switchtour a').on('click', function(e) {
             this.$el.on('click', function(e) {
                 e.stopPropagation();
-                self.invokeMenu();
+                var element = document.getElementById('switchtour-button');
+                var buttontext = element.textContent || element.innerText;
+                if ( buttontext === 'Abort' ){
+                    self.abort();
+                } else {
+                    self.invoke();
+                }
             });
 
             this.parent.on('keydown', function(e) {
                 e.stopPropagation();
                 if ( e.which === 27 || e.keyCode === 27 ) {
-                    self.invokeMenu();
+                    self.invoke();
                 }
             });
 
             $('#switchtour-submit').on('click', function(e) {
                 e.stopPropagation();
                 self.runSelection();
-
             });
 
             $('#switchtour-workflow').on('click',function(e){
@@ -96,7 +101,6 @@ $(document).ready(function() {
                 $.getJSON(Galaxy.root + 'api/webhooks/switchtour/data', {fun: 'get_bibtex'}, function(ret) {
                     self.download('citations.bib',ret.data.bibtex);
                 });
-                self.download('citations.bib',bibtex);
             });
         },
 
@@ -112,19 +116,25 @@ $(document).ready(function() {
             $('#switchtour-menu').hide();
         },
 
-        invokeMenu: function() {
-            var self = this;
+        abort: function() {
+            this.$el.html(this.button({text: 'Restart'}));
+            this.removeMenu();
+            tourcounter = 0;
+            if (typeof tour !== 'undefined') {
+                tour.end();
+            }
+        },
 
+        invoke: function() {
+            var self = this;
             $.getJSON(Galaxy.root + 'api/webhooks/switchtour/data', {fun: ''}, function(ret) {
                 if (ret.success) {
-                    if (tourcounter > 1 && $('#switchtour-menu').is(':visible') ){
-                        self.$el.html(self.button({text: 'Restart'}));
-                        self.removeMenu();
-                        tourcounter = 0;
+                    // ('#switchtour-menu').is(':visible')
+                    if (tourcounter > 1){
+                        self.abort();
                     } else {
                         self.$el.html(self.button({text: 'Abort'}));
                         if (tourcounter > 0) {
-                            alert("hier");
                             $.getJSON(Galaxy.root + 'api/tours', function(tour) {
                                 var choices = '';
                                 var regex = new RegExp(tourprefix + '_' + tourcounter);
@@ -139,6 +149,7 @@ $(document).ready(function() {
                                 self.showMenu();
                             });
                         } else {
+                            $.getJSON(Galaxy.root + 'api/webhooks/switchtour/data', {fun: 'new_history'});
                             $.getJSON(Galaxy.root + 'api/tours', function(tour) {
                                 var choices = '';
                                 var regex = new RegExp('destair_linker');
@@ -162,7 +173,6 @@ $(document).ready(function() {
         },
 
         download: function(filename, data) {
-            // alert('download');
             var blob = new Blob([data], {type: 'application/octet-stream'});
             var e = document.createElement('a');
             document.body.appendChild(e);
@@ -173,17 +183,24 @@ $(document).ready(function() {
         },
 
         runSelection: function (){
+            var self = this;
             var tourid = $("input[name='switchtour-select']").filter(':checked').val();
             tourprefix = tourid; // for destair_linker
             if (tourid && tourcounter == 0) {
                 tourcounter++;
                 $("input[name='switchtour-select']").prop('checked', false);
-                this.invokeMenu();
+                this.invoke();
             } else if (tourid) {                
                 tourcounter++;
-                self.removeMenu();
-                alert('runtour ' + tourid);
-                //runtour(tourcounter)
+                this.removeMenu();
+                $.getJSON( Galaxy.root + 'api/tours/' + tourid, function( data ) {
+                    var tourdata = hooked_tour_from_data(data);
+                    sessionStorage.setItem('activeGalaxyTour', JSON.stringify(data));
+                    tour = new Tour(_.extend({
+                        steps: tourdata.steps,
+                    }, tour_opts));
+                    tour.restart();
+                });
             }
         },
 
@@ -197,4 +214,58 @@ $(document).ready(function() {
 
     var tourcounter = 0;
     var tourprefix = '';
+    var tour;
+
+    var hooked_tour_from_data = function (data) {
+        _.each(data.steps, function (step) {
+            if (step.preclick){
+                step.onShow = function(){
+                    _.each(step.preclick, function(preclick){
+                        $(preclick).click();
+                    });
+                };
+            }
+            if (step.postclick){
+                step.onHide = function(){
+                    _.each(step.postclick, function(postclick){
+                        $(postclick).click();
+                    });
+                };
+            }
+            if (step.textinsert){
+                step.onShown= function(){
+                    $(step.element).val(step.textinsert).trigger("change");
+                };
+            }
+        });
+        return data;
+    };
+
+    var tour_opts = {
+        storage: window.sessionStorage,
+
+        onEnd: function(){
+            sessionStorage.removeItem('activeGalaxyTour');
+            var step = tour.getStep(tour.getCurrentStep()+1);
+            if (typeof step == 'undefined') {
+                switchtour.invoke();
+            } else {
+                alert("Aborted");
+                tourcounter = 0;
+                switchtour.$el.html(switchtour.button({text: 'Restart'}));
+            }
+        },
+
+        delay: 150,
+
+        orphan: true,
+
+        onNext: function(){
+            var tourstep = tour.getCurrentStep();
+            if (tourstep == -1){
+                tour.end();
+                switchtour.invoke();
+            }
+        }
+    };
 });
