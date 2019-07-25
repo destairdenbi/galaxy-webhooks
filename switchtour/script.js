@@ -20,7 +20,7 @@ $(document).ready(function() {
                 '<br>' +
                 '<button id="switchtour-submit">Submit</button>' +
                 '<div id="switchtour-download">' +
-                    '<br><br>' +
+                    '<br>' +
                     '<b>Download current</b>' +
                     '<br>' +
                     '<button id="switchtour-workflow">Workflow</button>' +
@@ -74,6 +74,7 @@ $(document).ready(function() {
             $('#switchtour-submit').on('click', function(e) {
                 e.stopPropagation();
                 self.runSelection();
+
             });
 
             $('#switchtour-workflow').on('click',function(e){
@@ -116,42 +117,42 @@ $(document).ready(function() {
 
             $.getJSON(Galaxy.root + 'api/webhooks/switchtour/data', {fun: ''}, function(ret) {
                 if (ret.success) {
-                    if ($('#switchtour-menu').is(':visible') ){
+                    if (tourcounter > 1 && $('#switchtour-menu').is(':visible') ){
                         self.$el.html(self.button({text: 'Restart'}));
                         self.removeMenu();
-                        tourid = 0;
+                        tourcounter = 0;
                     } else {
                         self.$el.html(self.button({text: 'Abort'}));
-                        if (tourid > 0) {
-                            $('#switchtour-text').html(self.text({header: 'tools', text: 'to work with'}));
-                            var choices = '';
-                            // for (var i = 0; i < values.length; i++) {
-                            choices = choices.concat(self.checkbox({value: 'value1', description: 'description1'}));
-                            choices = choices.concat(self.checkbox({value: 'value2', description: 'description2'}));
-                            $('#switchtour-checkbox').html(choices);
-                            $('#switchtour-download').show();
-                            tourid++;
-                        } else {
-                            tourid = 1;
-                            var choices = '';
-                            $.ajax({
-                                url: Galaxy.root + 'api/tours',
-                                dataType: 'json',
-                                async: false,
-                                success: function(tour) {
-                                    var regex = new RegExp('destair_linker');
-                                    for( var i in tour ) {
-                                        if( regex.test(tour[i].id) ) {
-                                            choices = choices.concat(self.checkbox({value: tour[i].tags[0], description: tour[i].description}));
-                                        }
+                        if (tourcounter > 0) {
+                            alert("hier");
+                            $.getJSON(Galaxy.root + 'api/tours', function(tour) {
+                                var choices = '';
+                                var regex = new RegExp(tourprefix + '_' + tourcounter);
+                                for( var i in tour ) {
+                                    if( regex.test(tour[i].id) ) {
+                                        choices = choices.concat(self.checkbox({value: tour[i].id, description: tour[i].description}));
                                     }
                                 }
+                                $('#switchtour-text').html(self.text({header: 'Please select a tool', text: ''}));
+                                $('#switchtour-checkbox').html(choices);
+                                $('#switchtour-download').show();
+                                self.showMenu();
                             });
-                            $('#switchtour-text').html(self.text({header: 'Welcome to de.STAIR guide', text: 'Which type of analysis do you want to perform?'}));
-                            $('#switchtour-checkbox').html(choices);
-                            // $('#switchtour-download').hide(); TODO reactivate
+                        } else {
+                            $.getJSON(Galaxy.root + 'api/tours', function(tour) {
+                                var choices = '';
+                                var regex = new RegExp('destair_linker');
+                                for( var i in tour ) {
+                                    if( regex.test(tour[i].id) ) {
+                                        choices = choices.concat(self.checkbox({value: tour[i].tags[0], description: tour[i].description}));
+                                    }
+                                }
+                                $('#switchtour-text').html(self.text({header: 'Welcome to de.STAIR guide', text: 'Which type of analysis do you want to perform?'}));
+                                $('#switchtour-checkbox').html(choices);
+                                $('#switchtour-download').hide();
+                                self.showMenu();
+                            });
                         }
-                        self.showMenu();
                     }
                 } else {
                     alert("Please login first");
@@ -172,10 +173,17 @@ $(document).ready(function() {
         },
 
         runSelection: function (){
-            var value = $("input[name='switchtour-select']").filter(':checked').val();
-            if (value) {
+            var tourid = $("input[name='switchtour-select']").filter(':checked').val();
+            tourprefix = tourid; // for destair_linker
+            if (tourid && tourcounter == 0) {
+                tourcounter++;
                 $("input[name='switchtour-select']").prop('checked', false);
-                alert('runtour ' + value);
+                this.invokeMenu();
+            } else if (tourid) {                
+                tourcounter++;
+                self.removeMenu();
+                alert('runtour ' + tourid);
+                //runtour(tourcounter)
             }
         },
 
@@ -187,5 +195,6 @@ $(document).ready(function() {
     // console.log(Galaxy.currHistoryPanel); // client/galaxy/scripts/mvc/history/history-view.js
     // Galaxy.currHistoryPanel.refreshContents(); 
 
-    var tourid = 0;
+    var tourcounter = 0;
+    var tourprefix = '';
 });
