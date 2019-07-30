@@ -48,7 +48,7 @@ $(document).ready(function() {
         render: function() {
             this.parent.prepend(this.menu({header: 'header', text: 'text'}));
             this.removeMenu();
-            this.$el.html(this.button({text: 'de.STAIR guide'}));
+            this.$el.html(this.button({text: 'de.STAIR Guide'}));
         },
 
         // builtin alternative to registerEvents
@@ -149,7 +149,9 @@ $(document).ready(function() {
                                 self.showMenu();
                             });
                         } else {
-                            $.getJSON(Galaxy.root + 'api/webhooks/switchtour/data', {fun: 'new_history'});
+                            $.getJSON(Galaxy.root + 'api/webhooks/switchtour/data', {fun: 'new_history'}, function(ret) {
+                                Galaxy.currHistoryPanel.refreshContents();
+                            });
                             $.getJSON(Galaxy.root + 'api/tours', function(tour) {
                                 var choices = '';
                                 var regex = new RegExp('destair_linker');
@@ -208,9 +210,6 @@ $(document).ready(function() {
 
     var switchtour = new SwitchtourView();
     var Galaxy = window.bundleEntries.getGalaxyInstance();
-    // console.log(Galaxy.user);
-    // console.log(Galaxy.currHistoryPanel); // client/galaxy/scripts/mvc/history/history-view.js
-    // Galaxy.currHistoryPanel.refreshContents(); 
 
     var tourcounter = 0;
     var tourprefix = '';
