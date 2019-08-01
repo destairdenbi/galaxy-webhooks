@@ -23,9 +23,9 @@ class Switchtour(object):
 
     def new_history(this):
         for h in HistoryManager(this.trans.app).by_user(this.user):
-            if h.name == 'de.STAIR history':
+            if h.name == 'de.STAIR Guide History (non-persistent!)':
                 HistoryManager(this.trans.app).purge(h)
-        this.trans.set_history(this.trans.new_history(name='de.STAIR history'))
+        this.trans.set_history(this.trans.new_history(name='de.STAIR Guide History (non-persistent!)'))
 
     def get_all(this):
         this.get_commands()
@@ -59,14 +59,14 @@ class Switchtour(object):
             if (e.creating_job.exit_code == 'none') or (e.creating_job.exit_code == 0):
                 job_ids.append(this.trans.app.security.encode_id(e.creating_job.id))
 
-        for w in this.trans.sa_session.query(this.trans.app.model.StoredWorkflow).filter_by(user=this.user, name='de.STAIR workflow', deleted=False).all():
+        for w in this.trans.sa_session.query(this.trans.app.model.StoredWorkflow).filter_by(user=this.user, name='de.STAIR Guide Workflow (non-persistent!)', deleted=False).all():
             try:
                 WorkflowController(this.trans.app).delete(this.trans, id=this.trans.app.security.encode_id(w.id))
             except:
                 pass
 
         if job_ids:
-            WorkflowsAPIController(this.trans.app).create(this.trans, {'from_history_id': this.history_id, 'workflow_name': 'de.STAIR workflow', 'job_ids': job_ids, 'dataset_ids': [], 'dataset_collection_ids': []})
+            WorkflowsAPIController(this.trans.app).create(this.trans, {'from_history_id': this.history_id, 'workflow_name': 'de.STAIR Guide Workflow (non-persistent!)', 'job_ids': job_ids, 'dataset_ids': [], 'dataset_collection_ids': []})
 
             w = this.trans.sa_session.query(this.trans.app.model.StoredWorkflow).filter_by(user=this.user, deleted=False).all()[0]
 

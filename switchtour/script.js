@@ -150,7 +150,8 @@ $(document).ready(function() {
                             });
                         } else {
                             $.getJSON(Galaxy.root + 'api/webhooks/switchtour/data', {fun: 'new_history'}, function(ret) {
-                                Galaxy.currHistoryPanel.refreshContents();
+                                // Galaxy.currHistoryPanel.refreshContents(); does not work
+								$('#history-refresh-button').click();
                             });
                             $.getJSON(Galaxy.root + 'api/tours', function(tour) {
                                 var choices = '';
@@ -210,6 +211,11 @@ $(document).ready(function() {
 
     var switchtour = new SwitchtourView();
     var Galaxy = window.bundleEntries.getGalaxyInstance();
+//	for(var k in Galaxy) {
+//		v = Galaxy[k];
+//		console.log(k,v);
+//	}
+//  Galaxy.currHistoryPanel.refreshContents(); switchToHistory() createNewHistory()   
 
     var tourcounter = 0;
     var tourprefix = '';
