@@ -85,6 +85,7 @@ class Switchtour(object):
                 continue
 
             b = CitationsManager(this.trans.app).citations_for_tool_ids([this.lasttool])
+            
             if b:
                 bib = b[0].to_bibtex()
                 if b[0].has_doi and re.search(r'title\s*=\s*\{.+', bib) is None:
@@ -99,10 +100,8 @@ class Switchtour(object):
                     except:
                         pass
                 bib = bib.lstrip()
-                if filter(lambda c: c.equals(bib) is False, citations):
+                if not bib in citations:
                     this.bibtex = this.bibtex + "\n\n" + bib
-                    citations.append(bib)
-
         return {
             'bibtex': this.bibtex
         }
