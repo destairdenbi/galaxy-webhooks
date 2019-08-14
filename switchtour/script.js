@@ -70,7 +70,7 @@ $(document).ready(function() {
                 e.stopPropagation();
                 var element = document.getElementById('switchtour-button');
                 var buttontext = element.textContent || element.innerText;
-                if ( buttontext === 'Abort' ){
+                if ( buttontext === 'Abort' || buttontext === 'End' ){
                     self.abort();
                 } else {
                     self.invoke();
@@ -82,7 +82,7 @@ $(document).ready(function() {
                 if ( e.which === 27 || e.keyCode === 27 ) {
                     var element = document.getElementById('switchtour-button');
                     var buttontext = element.textContent || element.innerText;
-                    if ( buttontext === 'Abort' ){
+                    if ( buttontext === 'Abort' || buttontext === 'End' ){
                         self.abort();
                     } else {
                         self.invoke();
@@ -133,7 +133,7 @@ $(document).ready(function() {
             this.$el.html(this.button({text: 'Restart'}));
             this.removeMenu();
             tourcounter = 0;
-            if (typeof tour !== 'undefined') {
+            if (typeof tour !== 'undefined' && ! tour.ended()) {
                 tour.end();
             }
         },
@@ -142,74 +142,77 @@ $(document).ready(function() {
             var self = this;
             $.getJSON(Galaxy.root + 'api/webhooks/switchtour/data', {fun: ''}, function(ret) {
                 if (ret.success) {
-                    // ('#switchtour-menu').is(':visible')
-                    if (tourcounter > 1){
-                        self.abort();
+                    if (tourcounter > 0) {
+                        $.getJSON(Galaxy.root + 'api/tours', function(tour) {
+                            var choices = '';
+                            var regex = new RegExp(tourprefix + '_' + tourcounter);
+                            var url = Galaxy.root + 'static/welcome.html';
+                            for( var i in tour ) {
+                                if( regex.test(tour[i].id) ) {
+                                    $.ajax({
+                                        url: Galaxy.root + 'static/test.html',
+                                        async: false,
+                                        success: function() {
+                                            url = Galaxy.root + 'static/test.html';
+                                            $.ajax({
+                                                url: Galaxy.root + 'static/'+ tour[i].id + '.html',
+                                                async: false,
+                                                success: function() {
+                                                    url = Galaxy.root + 'static/'+ tour[i].id + '.html'
+                                                }
+                                            });
+                                        }
+                                    });
+                                    choices = choices.concat(self.checkbox({value: tour[i].id, description: tour[i].description, url: url}));
+                                }
+                            }
+                            if(choices){
+                                $('#switchtour-text').html(self.text({header: 'Please select a tool', text: ''}));
+                                $('#switchtour-submit').show();
+                            } else {
+                                switchtour.$el.html(switchtour.button({text: 'End'}));
+                                $('#switchtour-submit').hide();
+                                $('#switchtour-text').html(self.text({header: 'Success!', text: 'You completed this tour!<br>Please do not forget to...'}));
+                            }
+                            $('#switchtour-checkbox').html(choices);
+                            $('#switchtour-download').show();
+                            self.showMenu();
+                        });
                     } else {
                         self.$el.html(self.button({text: 'Abort'}));
-                        if (tourcounter > 0) {
-                            $.getJSON(Galaxy.root + 'api/tours', function(tour) {
-                                var choices = '';
-                                var regex = new RegExp(tourprefix + '_' + tourcounter);
-                                var url = Galaxy.root + 'static/welcome.html';
-                                for( var i in tour ) {
-                                    if( regex.test(tour[i].id) ) {
-                                        $.ajax({
-                                            url: Galaxy.root + 'static/test.html',
-                                            async: false,
-                                            success: function() {
-                                                url = Galaxy.root + 'static/test.html';
-                                                $.ajax({
-                                                    url: Galaxy.root + 'static/'+ tour[i].id + '.html',
-                                                    async: false,
-                                                    success: function() {
-                                                        url = Galaxy.root + 'static/'+ tour[i].id + '.html'
-                                                    }
-                                                });
-                                            }
-                                        });
-                                        choices = choices.concat(self.checkbox({value: tour[i].id, description: tour[i].description, url: url}));
-                                    }
+                        $.getJSON(Galaxy.root + 'api/webhooks/switchtour/data', {fun: 'new_history'}, function(ret) {
+                            // Galaxy.currHistoryPanel.refreshContents(); does not work
+							$('#history-refresh-button').click();
+                        });
+                        $.getJSON(Galaxy.root + 'api/tours', function(tour) {
+                            var choices = '';
+                            var regex = new RegExp('destair_linker');
+                            var url = Galaxy.root + 'static/welcome.html';
+                            for( var i in tour ) {
+                                if( regex.test(tour[i].id) ) {
+                                    $.ajax({
+                                        url: Galaxy.root + 'static/test.html',
+                                        async: false,
+                                        success: function() {
+                                            url = Galaxy.root + 'static/test.html';
+                                            $.ajax({
+                                                url: Galaxy.root + 'static/'+ tour[i].id + '.html',
+                                                async: false,
+                                                success: function() {
+                                                    url = Galaxy.root + 'static/'+ tour[i].id + '.html'
+                                                }
+                                            });
+                                        }
+                                    });
+                                    choices = choices.concat(self.checkbox({value: tour[i].tags[0], description: tour[i].description, url: url}));
                                 }
-                                $('#switchtour-text').html(self.text({header: 'Please select a tool', text: ''}));
-                                $('#switchtour-checkbox').html(choices);
-                                $('#switchtour-download').show();
-                                self.showMenu();
-                            });
-                        } else {
-                            $.getJSON(Galaxy.root + 'api/webhooks/switchtour/data', {fun: 'new_history'}, function(ret) {
-                                // Galaxy.currHistoryPanel.refreshContents(); does not work
-								$('#history-refresh-button').click();
-                            });
-                            $.getJSON(Galaxy.root + 'api/tours', function(tour) {
-                                var choices = '';
-                                var regex = new RegExp('destair_linker');
-                                var url = Galaxy.root + 'static/welcome.html';
-                                for( var i in tour ) {
-                                    if( regex.test(tour[i].id) ) {
-                                        $.ajax({
-                                            url: Galaxy.root + 'static/test.html',
-                                            async: false,
-                                            success: function() {
-                                                url = Galaxy.root + 'static/test.html';
-                                                $.ajax({
-                                                    url: Galaxy.root + 'static/'+ tour[i].id + '.html',
-                                                    async: false,
-                                                    success: function() {
-                                                        url = Galaxy.root + 'static/'+ tour[i].id + '.html'
-                                                    }
-                                                });
-                                            }
-                                        });
-                                        choices = choices.concat(self.checkbox({value: tour[i].tags[0], description: tour[i].description, url: url}));
-                                    }
-                                }
-                                $('#switchtour-text').html(self.text({header: 'Welcome to de.STAIR guide', text: 'Which type of analysis do you want to perform?'}));
-                                $('#switchtour-checkbox').html(choices);
-                                $('#switchtour-download').hide();
-                                self.showMenu();
-                            });
-                        }
+                            }
+                            $('#switchtour-text').html(self.text({header: 'Welcome to de.STAIR guide', text: 'Which type of analysis do you want to perform?'}));
+                            $('#switchtour-checkbox').html(choices);
+                            $('#switchtour-submit').show();
+                            $('#switchtour-download').hide();
+                            self.showMenu();
+                        });
                     }
                 } else {
                     alert("Please login first");
@@ -231,8 +234,8 @@ $(document).ready(function() {
         runSelection: function (){
             var self = this;
             var tourid = $("input[name='switchtour-select']").filter(':checked').val();
-            tourprefix = tourid; // for destair_linker
             if (tourid && tourcounter == 0) {
+                tourprefix = tourid; // from destair_linker
                 tourcounter++;
                 $("input[name='switchtour-select']").prop('checked', false);
                 this.invoke();
@@ -295,7 +298,7 @@ $(document).ready(function() {
         onEnd: function(){
             sessionStorage.removeItem('activeGalaxyTour');
             var step = tour.getStep(tour.getCurrentStep()+1);
-            if (typeof step == 'undefined') {
+            if (typeof step === 'undefined') {
                 switchtour.invoke();
             } else {
                 alert("Aborted");
@@ -309,8 +312,8 @@ $(document).ready(function() {
         orphan: true,
 
         onNext: function(){
-            var tourstep = tour.getCurrentStep();
-            if (tourstep == -1){
+            var step = tour.getStep(tour.getCurrentStep()+1);
+            if (typeof step === 'undefined') {
                 tour.end();
                 switchtour.invoke();
             }
