@@ -21,8 +21,7 @@ $(document).ready(function() {
                 '<button id="switchtour-submit">Submit</button>' +
                 '<div id="switchtour-download">' +
                     '<br>' +
-                    '<b>Download current</b>' +
-                    '<br>' +
+                    '<h4>Download current</h4>' +
                     '<button id="switchtour-workflow">Workflow</button>' +
                     '&nbsp' +
                     '<button id="switchtour-commands">Commands</button>' +
@@ -33,11 +32,19 @@ $(document).ready(function() {
         ),
 
         checkbox: _.template(
-            '<input type="radio" name="switchtour-select" value="<%= value %>"><%= description %><br>'
+            '<label class="switchtour-mouseover">' +
+                '<iframe src="<%= url %>" class="switchtour-help" id="switchtour-help-<%= value %>" onmouseout=\'$("#switchtour-help-<%= value %>").css("display", "none");\'></iframe>' +
+                '<input type="radio" name="switchtour-select" value="<%= value %>">' +
+                '<text onmouseover=\'$(".switchtour-help").css("display", "none"); $("#switchtour-help-<%= value %>").css("display", "block");\'>' +
+                    '<%= description %>' +
+                '</text>' +
+            '</label>' +
+            '<br>'
         ),
 
         text: _.template(
-            '<b> <%= header %> </b> <br> <%= text %>'
+            '<h3><%= header %></h3>' +
+            '<b><%= text %></b>'
         ),
 
         initialize: function () {
@@ -73,7 +80,13 @@ $(document).ready(function() {
             this.parent.on('keydown', function(e) {
                 e.stopPropagation();
                 if ( e.which === 27 || e.keyCode === 27 ) {
-                    self.invoke();
+                    var element = document.getElementById('switchtour-button');
+                    var buttontext = element.textContent || element.innerText;
+                    if ( buttontext === 'Abort' ){
+                        self.abort();
+                    } else {
+                        self.invoke();
+                    }
                 }
             });
 
@@ -138,9 +151,24 @@ $(document).ready(function() {
                             $.getJSON(Galaxy.root + 'api/tours', function(tour) {
                                 var choices = '';
                                 var regex = new RegExp(tourprefix + '_' + tourcounter);
+                                var url = Galaxy.root + 'static/welcome.html';
                                 for( var i in tour ) {
                                     if( regex.test(tour[i].id) ) {
-                                        choices = choices.concat(self.checkbox({value: tour[i].id, description: tour[i].description}));
+                                        $.ajax({
+                                            url: Galaxy.root + 'static/test.html',
+                                            async: false,
+                                            success: function() {
+                                                url = Galaxy.root + 'static/test.html';
+                                                $.ajax({
+                                                    url: Galaxy.root + 'static/'+ tour[i].id + '.html',
+                                                    async: false,
+                                                    success: function() {
+                                                        url = Galaxy.root + 'static/'+ tour[i].id + '.html'
+                                                    }
+                                                });
+                                            }
+                                        });
+                                        choices = choices.concat(self.checkbox({value: tour[i].id, description: tour[i].description, url: url}));
                                     }
                                 }
                                 $('#switchtour-text').html(self.text({header: 'Please select a tool', text: ''}));
@@ -156,9 +184,24 @@ $(document).ready(function() {
                             $.getJSON(Galaxy.root + 'api/tours', function(tour) {
                                 var choices = '';
                                 var regex = new RegExp('destair_linker');
+                                var url = Galaxy.root + 'static/welcome.html';
                                 for( var i in tour ) {
                                     if( regex.test(tour[i].id) ) {
-                                        choices = choices.concat(self.checkbox({value: tour[i].tags[0], description: tour[i].description}));
+                                        $.ajax({
+                                            url: Galaxy.root + 'static/test.html',
+                                            async: false,
+                                            success: function() {
+                                                url = Galaxy.root + 'static/test.html';
+                                                $.ajax({
+                                                    url: Galaxy.root + 'static/'+ tour[i].id + '.html',
+                                                    async: false,
+                                                    success: function() {
+                                                        url = Galaxy.root + 'static/'+ tour[i].id + '.html'
+                                                    }
+                                                });
+                                            }
+                                        });
+                                        choices = choices.concat(self.checkbox({value: tour[i].tags[0], description: tour[i].description, url: url}));
                                     }
                                 }
                                 $('#switchtour-text').html(self.text({header: 'Welcome to de.STAIR guide', text: 'Which type of analysis do you want to perform?'}));
