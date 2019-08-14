@@ -12,7 +12,8 @@ sample=$(ls $GALAXY_ROOT/config/galaxy.+(yml|ini).sample | head -1 )
 sed -i -r 's/(^\s*)#+(\s*webhooks_dir.+)/\1\2/' $cfg
 sed -i -r 's/(^\s*)#+(\s*tour_config_dir.+)/\1\2/' $cfg
 sed -i -r 's/(^\s*)#+(\s*tool_path.+)/\1\2/' $cfg
-sed -i -r 's/(^\s*)#+(\s*allow_user_dataset_purge\s*=\s*).*/\1\2True/' $cfg
+sed -i -r 's/(^\s*)#+(\s*new_user_dataset_access_role_default_private\s*[:=]\s*).*/\1\2true/' $cfg
+sed -i -r 's/(^\s*)#+(\s*allow_user_dataset_purge\s*[:=]\s*).*/\1\2true/' $cfg
 
 if [[ ! $(grep -F 'de.STARI-workflow-generator' $GALAXY_ROOT/tools/data_source/upload.xml) ]]; then
 sed -i '$ d' $GALAXY_ROOT/tools/data_source/upload.xml

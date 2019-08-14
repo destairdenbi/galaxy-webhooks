@@ -12,6 +12,21 @@
     text-align: center;
 }
 
+.switchtour-mouseover {
+  position: relative;
+}
+
+.switchtour-help {
+  z-index: 3;
+  position: absolute;
+  display: none;
+  background-color: #fff;
+  border: 1px solid #2c3143;
+  border-radius: 0px 10px 10px 10px;
+  top: 50%;
+  left: 101%;
+}
+
 #switchtour-masthead {
     color: #fff;
     padding-bottom: 8px;

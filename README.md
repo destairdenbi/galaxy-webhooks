@@ -5,10 +5,11 @@ Webhooks
 export GALAXY_ROOT=/path/to/galaxy
 git clone https://github.com/galaxyproject/galaxy.git $GALAXY_ROOT
 cd $GALAXY_ROOT
-git checkout v17.05
+git checkout v19.05
 ```
 Install
  * https://github.com/destairdenbi/guided_tours
+ * https://github.com/destairdenbi/guided_tours_help
 
 # Installation
 ```
