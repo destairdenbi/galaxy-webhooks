@@ -167,7 +167,7 @@ $(document).ready(function() {
                                 }
                             }
                             if(choices){
-                                $('#switchtour-text').html(self.text({header: 'Please select a tool', text: ''}));
+                                $('#switchtour-text').html(self.text({header: 'Please select a task implementation', text: ''}));
                                 $('#switchtour-submit').show();
                             } else {
                                 switchtour.$el.html(switchtour.button({text: 'End'}));
@@ -175,7 +175,9 @@ $(document).ready(function() {
                                 $('#switchtour-text').html(self.text({header: 'Success!', text: 'You completed this tour!<br>Please do not forget to...'}));
                             }
                             $('#switchtour-checkbox').html(choices);
-                            $('#switchtour-download').show();
+                            if (tourcounter > 1) { 
+                                $('#switchtour-download').show();
+                            }
                             self.showMenu();
                         });
                     } else {
