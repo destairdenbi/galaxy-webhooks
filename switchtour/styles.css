@@ -36,10 +36,10 @@
 #switchtour-masthead button {
     color: #fff;
     font-size: 14px;
-    background-color: #768fa5;
+    background-color: #ed1d99;
     border: none;
     border-radius: 10px;
-    box-shadow: 0 4px #5c768c;
+    box-shadow: 0 4px #4fabe4;
     padding: 0 14px;
 }
 
@@ -48,6 +48,6 @@
 }
 
 #switchtour-masthead button:active {
-    box-shadow: 0 0 #5c768c;
+    box-shadow: 0 0 #4fabe4;
     transform: translateY(5px);
 }

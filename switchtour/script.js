@@ -58,7 +58,7 @@ $(document).ready(function() {
             this.$el.html(this.button({text: 'de.STAIR Guide'}));
         },
 
-        // builtin alternative to registerEvents
+        // builtin alternative to register
         // events: {
         //     'click #switchtour-button': 'invoke'
         // },
@@ -286,7 +286,7 @@ $(document).ready(function() {
                 };
             }
             if (step.textinsert){
-                step.onShown= function(){
+                step.onShow = function(){
                     $(step.element).val(step.textinsert).trigger("change");
                 };
             }
@@ -309,7 +309,7 @@ $(document).ready(function() {
             }
         },
 
-        delay: 150,
+        delay: 300,
 
         orphan: true,
 
