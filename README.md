@@ -2,9 +2,19 @@
 
 # Webhooks
 
-This repository contains the de.STAIR Galaxy plugin. This is based on the
-[Galaxy webhooks](https://docs.galaxyproject.org/en/master/admin/webhooks.html),
+This repository contains the de.STAIR Galaxy plugin, which is incorporated in
+the [Galaxy workflow generator](https://github.com/destairdenbi/galaxy-workflow-generator).  
+The plugin is based on the [Galaxy webhooks](https://docs.galaxyproject.org/en/master/admin/webhooks.html),
 which extend the Galaxy interface with buttons and pop-up dialogues.  
+
+- [How it works](#how-it-works)
+- [How to contribute](#how-to-contribute)
+  - [Set up the Galaxy environment](#set-up-the-galaxy-environment)
+  - [Set up the de.STAIR atoms](#set-up-the-destair-atoms)
+  - [Set up the de.STAIR plugin](#set-up-the-destair-plugin)
+  - [Run the Galaxy framework](#run-the-galaxy-framework)
+
+## How it works
 The plugin provides:
 - A new button placed on the Galaxy header
 - New pop-up dialogues to
@@ -46,18 +56,20 @@ of the selected analysis
 completing the first task of the selected analysis
 6. Repeat from 3, this time for *2nd task* of the selected analysis
 
-The loop ends when the last task is completed.  
-
-To test the plugin, it is therefore mandatory to install the atoms.  
-The plugin can be tested, modified, and contributed by following these instructions:
-
-- [Set up the Galaxy environment](#set-up-the-galaxy-environment)
-- [Set up the de.STAIR atoms](#set-up-the-destair-atoms)
-- [Set up the de.STAIR plugin](#set-up-the-destair-plugin)
-- [Run the Galaxy framework](#run-the-galaxy-framework)
+The loop ends when the last task of the Galaxy workflow is completed.
+<p align="right"><a href="#top">&#x25B2; back to top</a></p>
 
 
-## Set up the Galaxy environment
+## How to contribute
+
+The plugin can be tested, modified, and further extended. To do so, you will
+need to install the atoms as well.  
+The following sections will help you setting up the Galaxy framework to
+contribute to the plugin.
+<p align="right"><a href="#top">&#x25B2; back to top</a></p>
+
+
+### Set up the Galaxy environment
 
 Create a directory for the Galaxy repository
 ```
@@ -77,7 +89,7 @@ $ git checkout v19.01
 <p align="right"><a href="#top">&#x25B2; back to top</a></p>
 
 
-## Set up the de.STAIR atoms
+### Set up the de.STAIR atoms
 
 Create a directory for the de.STAIR Galaxy atoms repository
 ```
@@ -96,7 +108,7 @@ $ $DESTAIR_GALAXY_ATOMS/setup.sh
 <p align="right"><a href="#top">&#x25B2; back to top</a></p>
 
 
-## Set up the de.STAIR plugin
+### Set up the de.STAIR plugin
 
 Create a directory for the de.STAIR Galaxy plugin repository
 ```
@@ -115,23 +127,10 @@ $ $DESTAIR_GALAXY_PLUGIN/setup.sh
 <p align="right"><a href="#top">&#x25B2; back to top</a></p>
 
 
+### Run the Galaxy framework
 
-
-
-
-
-Install
- * https://github.com/destairdenbi/guided_tours
- * https://github.com/destairdenbi/guided_tours_help
-
-# Installation
+Run the Galaxy launch script to verify the Galaxy framework setup and the inclusion of the new tools
 ```
-git clone https://github.com/destairdenbi/webhooks.git
-cd webhooks
-./setup.sh
+$ $GALAX_ROOT/run.sh
 ```
-
-# RUN
-```
-$GALAX_ROOT/run.sh
-```
+<p align="right"><a href="#top">&#x25B2; back to top</a></p>
