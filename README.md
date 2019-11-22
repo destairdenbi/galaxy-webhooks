@@ -17,19 +17,23 @@ guide, which is implemented by means of a series of pop-ups. Each pop-up
 presents a list of alternative Galaxy tools, which can be adopted to complete
 the current task in the selected analysis. These are the *atoms*: interactive
 tours that illustrate one or more Galaxy tools.
-The figure below shows how a plugin pop-up presents the set of alternative
-atoms to carry out the Quality control and data preprocessing:
+**Figure a** below shows how a plugin pop-up presents the set of alternative
+atoms to carry out the Quality control and data preprocessing.
 
-<img/>
+<p align="center">
+  <img align="center"
+    src="web/popups.png"
+    width="600px"
+    alt="New pop-ups for the selection of alternative atoms"
+    valign="top"/>
+</p>
 
 By selecting an atom, a Galaxy webhook triggers the corresponding interactive
 tour, which the user navigates to execute each of its underlying Galaxy tools.  
 Before selecting one, users can compare each alternative atom by reading their
 description page. These help pages explain the underlying Galaxy tool (or
 series thereof), and provide literature-based and empirical rankings.  
-The figure below shows the pop-up and description page of the selected atom:
-
-<img/>
+**Figure b** above shows the pop-up and description page of the selected atom.  
 
 The plugin defines new interactions to build Galaxy workflows:
 1. **Galaxy interface** presents a pop-up to ask the user which analysis to
