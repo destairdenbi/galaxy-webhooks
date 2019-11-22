@@ -1,6 +1,6 @@
 <div id="top"></div>
 
-# Webhooks
+# Plugin
 
 This repository contains the de.STAIR Galaxy plugin, which is incorporated in
 the [Galaxy workflow generator](https://github.com/destairdenbi/galaxy-workflow-generator).  
