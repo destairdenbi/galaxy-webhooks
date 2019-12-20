@@ -16,6 +16,10 @@ $(document).ready( () => {
             '<div id="switchtour-loader"></div>'
         ),
 
+        helper: _.template(
+            '<div id="iframe-helper"></div>'
+        ),
+
         menu: _.template(
 			'<div id="switchtour-menu">' +
                 '<div id="switchtour-text"></div>' +
@@ -59,6 +63,7 @@ $(document).ready( () => {
         render: function() {
             this.parent.prepend(this.menu({header: 'header', text: 'text'}));
             this.parent.prepend(this.loader());
+            this.parent.prepend(this.helper());
             this.removeLoader();
             this.removeMenu();
             this.$el.html(this.button({text: 'Workflow generator'}));
@@ -202,7 +207,7 @@ $(document).ready( () => {
                                 }
                             }
                             if(choices){
-                                $('#switchtour-text').html(this.text({header: 'Please select an Atom', text: ''}));
+                                $('#switchtour-text').html(this.text({header: 'Please select Atom', text: ''}));
                                 $('#switchtour-submit').show();
                             } else {
                                 switchtour.$el.html(switchtour.button({text: 'End'}));
@@ -292,6 +297,8 @@ $(document).ready( () => {
                         // Galaxy.currHistoryPanel.refreshContents(); does not work
                         $('#history-refresh-button').click();
                     });
+                } else {
+                    testMode = true;
                 }
                 tourcounter++;
                 $("input[name='switchtour-select']").prop('checked', false);
@@ -313,8 +320,8 @@ $(document).ready( () => {
                             step.preclick = undefined;
                         }
                         var allowedKeys = new Set(["title", "element", "placement", "content", "onnextclick", "onprevclick",
-                                                   "textinsert", "onloadwait", "onloadclick", "onnextwait", "duration", "delay",
-                                                   "orphan", "backdrop", "pointer", "postclick", "preclick"]);
+                                                   "textinsert", "select" , "onloadwait", "onloadclick", "onnextwait", "duration", "delay",
+                                                   "orphan", "backdrop", "pointer", "postclick", "preclick", "iframeelement"]);
                         Object.keys(step).forEach(function(key,index) {
                              if(! allowedKeys.has(key)){
                                  alert("Error in tour " + tourid + ": step " + (stepIdx + 1) + " invalid key " + key);
@@ -335,6 +342,7 @@ $(document).ready( () => {
 
     var switchtour = new SwitchtourView();
 	var tour;
+    var testMode = false;
 
     var Galaxy = window.bundleEntries.getGalaxyInstance();
 //	for(var k in Galaxy) {
@@ -359,10 +367,17 @@ $(document).ready( () => {
         onNext: function() {
             var step = tour.getStep(tour.getCurrentStep());
             if(step.onnextclick) {
-                _.each(step.onnextclick, (e) => {
-                    //document.getElementsByClassName(e.replace(/\./g, " "))[0].click();
-                    $(e)[0].click();
-                });
+                if(step.iframeelement){
+                    _.each(step.onnextclick, (e) => {
+                        console.log('tofind' ,e);
+                        $("#galaxy_main").contents().find(e)[0].click();
+                    });
+                } else {
+                    _.each(step.onnextclick, (e) => {
+                        //document.getElementsByClassName(e.replace(/\./g, " "))[0].click();
+                        $(e)[0].click();
+                    });
+                }
             }
             step = tour.getStep(tour.getCurrentStep()+1);
             if (typeof step === 'undefined') {
@@ -374,29 +389,38 @@ $(document).ready( () => {
         onPrev: function() {
             var step = tour.getStep(tour.getCurrentStep());
             if(step.onprevclick) {
-                _.each(step.onprevclick, (e) => {
-                    //document.getElementsByClassName(e.replace(/\./g, " "))[0].click();
-                    $(e)[0].click();
-                });
+                if(step.iframeelement){
+                    _.each(step.onprevclick, (e) => {
+                        $("#galaxy_main").contents().find(e)[0].click();
+                    });
+                } else {
+                    _.each(step.onnextclick, (e) => {
+                        //document.getElementsByClassName(e.replace(/\./g, " "))[0].click();
+                        $(e)[0].click();
+                    });
+                }
             }
         },
 
         onShown: function() {
-            $('#masthead').css('pointer-events', 'none');
-            $('#columns').css('pointer-events', 'none');
-            $('.modal-content').css('pointer-events', 'none');
-            $('.modal').css('pointer-events', 'none');
-            $('#switchtour-masthead').css('pointer-events', 'auto');
-            //$('.modal-content')[0].css('pointer-events', 'none');
+            if(! testMode ){
+                $('#masthead').css('pointer-events', 'none');
+                $('#columns').css('pointer-events', 'none');
+                $('.modal-content').css('pointer-events', 'none');
+                $('.modal').css('pointer-events', 'none');
+                $('#switchtour-masthead').css('pointer-events', 'auto');
+            }
             var step = tour.getStep(tour.getCurrentStep());
-            if (step.onloadclick || step.textinsert){
+            if (step.onloadclick || step.textinsert || step.select){
                 _.each(step.onloadclick, (e) => {
-                    //document.getElementsByClassName(e.replace(/\./g, " "))[0].click();
                     $(e)[0].click();
                 });
                 if(step.textinsert){
                     $(step.element).val(step.textinsert).trigger("change");
                 }
+                _.each(step.select, (e) => {
+                    $(e).prop("selected", true);
+                });
             }
             if(step.element && step.pointer){
                 $(step.element).css('pointer-events', 'auto');
@@ -442,54 +466,65 @@ $(document).ready( () => {
             }
 			let step = tour.getStep(i);
             if (typeof step !== 'undefined') {
-                if(step.onloadwait){
-                    _.each(step.onloadwait, (e) => {
-                        if(! e.hasOwnProperty('count')){
-                            e.count = 1;
-                        }
-                        observeElements.push({element: e.element, count: e.count});
-                    });
-                }
-				if(step.element){
-                    observeElements.push({element: step.element, count: 1});
-                }
-                if(step.onloadclick){
-                    _.each(step.onloadclick, (e) => {
-                        observeElements.push({element: e, count: 1});
-                    });
-                }
-                if(step.preclick){
-                    _.each(step.preclick, (e) => {
-                        observeElements.push({element: e, count: 1});
-                    });
-                }
-                if(step.onnextclick){
-                    _.each(step.onnextclick, (e) => {
-                        observeElements.push({element: e, count: 1});
-                    });
-                }
-                if(step.postclick){
-                    _.each(step.postclick, (e) => {
-                        observeElements.push({element: e, count: 1});
-                    });
-                }
-                if(step.onprevclick){
-                    _.each(step.onprevclick, (e) => {
-                        observeElements.push({element: e, count: 1});
-                    });
-                }
+                if(step.iframeelement){
+                    let rect0 = $('#masthead')[0].getBoundingClientRect();
+                    let rect1 = $('.center-container')[0].getBoundingClientRect();
+                    let rect2 = $("#galaxy_main").contents().find(step.iframeelement)[0].getBoundingClientRect();
+                    let e = document.getElementById('iframe-helper');
+                    e.style.top = rect2.top + rect1.top + 'px';
+                    e.style.left = rect2.left + rect1.left + 'px';
+                    e.style.width = rect2.width + 'px';
+                    e.style.height = rect2.height + 'px';
+                } else {
+                    if(step.onloadwait){
+                        _.each(step.onloadwait, (e) => {
+                            if(! e.hasOwnProperty('count')){
+                                e.count = 1;
+                            }
+                            observeElements.push({element: e.element, count: e.count});
+                        });
+                    }
+                    if(step.element){
+                        observeElements.push({element: step.element, count: 1});
+                    }
+                    if(step.onloadclick){
+                        _.each(step.onloadclick, (e) => {
+                            observeElements.push({element: e, count: 1});
+                        });
+                    }
+                    if(step.preclick){
+                        _.each(step.preclick, (e) => {
+                            observeElements.push({element: e, count: 1});
+                        });
+                    }
+                    if(step.onnextclick){
+                        _.each(step.onnextclick, (e) => {
+                            observeElements.push({element: e, count: 1});
+                        });
+                    }
+                    if(step.postclick){
+                        _.each(step.postclick, (e) => {
+                            observeElements.push({element: e, count: 1});
+                        });
+                    }
+                    if(step.onprevclick){
+                        _.each(step.onprevclick, (e) => {
+                            observeElements.push({element: e, count: 1});
+                        });
+                    }
 
-                if (observeElements.length > 0){
-                    const promise = new Promise( (resolve,reject) => {
-                        promiseResolve = resolve;
-                        promiseReject = reject;
-                    });
-                    switchtour.showLoader();
-                    timeoutLoader();
-                    observer.observe(document, {subtree:true, childList:true} );
-                    $('<div>').attr('type','hidden').appendTo('body').remove(); //trigger observer
-                    return promise;
-                }				
+                    if (observeElements.length > 0){
+                        const promise = new Promise( (resolve,reject) => {
+                            promiseResolve = resolve;
+                            promiseReject = reject;
+                        });
+                        switchtour.showLoader();
+                        timeoutLoader();
+                        observer.observe(document, {subtree:true, childList:true} );
+                        $('<div>').attr('type','hidden').appendTo('body').remove(); //trigger observer
+                        return promise;
+                    }
+                }
             }
 		}
     };
@@ -498,7 +533,7 @@ $(document).ready( () => {
     function timeoutLoader(){
         if(! tourEnded){
             currentTimeout = setTimeout(function(){
-                if (confirm('At least one HTML element is not available yet\n\nIf some history jobs are still pending (grey or yellow),\nplease wait a little longer \t\t[OK]\nOr return to the previous step by \t\t[CANCEL]')) {
+                if (confirm('At least one HTML element is not available yet\n\n' + observeElements[0].element + '\n\nIf some history jobs are still pending (grey or yellow),\nplease wait a little longer \t\t[OK]\nOr return to the previous step by \t\t[CANCEL]')) {
                     timeoutLoader();
                 } else {
                     promiseReject();
