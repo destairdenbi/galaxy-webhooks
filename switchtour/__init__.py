@@ -4,6 +4,7 @@ from galaxy.webapps.galaxy.controllers.workflow import WorkflowController
 from galaxy.managers.citations import CitationsManager
 from galaxy.webapps.galaxy.controllers.history import HistoryController
 from galaxy.managers.histories import HistoryManager
+#from galaxy.webapps.galaxy.api.tours import ToursController
 
 import logging
 import re
@@ -21,6 +22,12 @@ class Switchtour(object):
         this.workflow = ''
         this.commands = ''
 
+    def update_tours(this):
+        this.trans.app.tour_registry.load_tours()
+        #tc = ToursController(this.trans.app)
+        #for t in this.trans.app.tour_registry.tours_by_id_with_description():
+        #     tc.update_tour(this.trans, t['id'])
+        
     def new_history(this):
         for h in HistoryManager(this.trans.app).by_user(this.user):
             if h.name == 'de.STAIR Guide History (non-persistent!)':
@@ -111,7 +118,7 @@ def main(trans, webhook, params):
     error = ''
 
     try:
-        apikey = api_keys.ApiKeyManager(trans.app).get_or_create_api_key(trans.user) # else not logged in error
+        #apikey = api_keys.ApiKeyManager(trans.app).get_or_create_api_key(trans.user) # else not logged in error
 
         switchtour = Switchtour(trans)
 

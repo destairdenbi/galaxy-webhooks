@@ -1,4 +1,4 @@
-$(document).ready(function() {
+$(document).ready( () => {
 
     var SwitchtourView = Backbone.View.extend({
 
@@ -12,8 +12,12 @@ $(document).ready(function() {
             '</div>'
         ),
 
+        loader: _.template(
+            '<div id="switchtour-loader"></div>'
+        ),
+
         menu: _.template(
-            '<div id="switchtour-menu">' +
+			'<div id="switchtour-menu">' +
                 '<div id="switchtour-text"></div>' +
                 '<br>' +
                 '<div id="switchtour-checkbox" align="left"></div>' +
@@ -47,15 +51,17 @@ $(document).ready(function() {
             '<b><%= text %></b>'
         ),
 
-        initialize: function () {
+        initialize: function() {
             this.render();
             this.register();
         },
 
         render: function() {
             this.parent.prepend(this.menu({header: 'header', text: 'text'}));
+            this.parent.prepend(this.loader());
+            this.removeLoader();
             this.removeMenu();
-            this.$el.html(this.button({text: 'de.STAIR Guide'}));
+            this.$el.html(this.button({text: 'Workflow generator'}));
         },
 
         // builtin alternative to register
@@ -63,87 +69,110 @@ $(document).ready(function() {
         //     'click #switchtour-button': 'invoke'
         // },
         register: function() {
-            var self = this;
-
-            // this.parent.find('ul #switchtour a').on('click', function(e) {
-            this.$el.on('click', function(e) {
+            this.$el.on('click', (e) => {
                 e.stopPropagation();
                 var element = document.getElementById('switchtour-button');
                 var buttontext = element.textContent || element.innerText;
                 if ( buttontext === 'Abort' || buttontext === 'End' ){
-                    self.abort();
+                    this.abort();
                 } else {
-                    self.invoke();
+                    this.invoke();
                 }
             });
 
-            this.parent.on('keydown', function(e) {
+            this.parent.on('keydown', (e) => {
                 e.stopPropagation();
                 if ( e.which === 27 || e.keyCode === 27 ) {
                     var element = document.getElementById('switchtour-button');
                     var buttontext = element.textContent || element.innerText;
                     if ( buttontext === 'Abort' || buttontext === 'End' ){
-                        self.abort();
+                        this.abort();
                     } else {
-                        self.invoke();
+                        this.invoke();
                     }
                 }
             });
 
-            $('#switchtour-submit').on('click', function(e) {
+            $('#switchtour-submit').on('click', (e) => {
                 e.stopPropagation();
-                self.runSelection();
+                this.runSelection();
             });
 
-            $('#switchtour-workflow').on('click',function(e){
+            $('#switchtour-workflow').on('click', (e) => {
                 e.stopPropagation();
-                $.getJSON(Galaxy.root + 'api/webhooks/switchtour/data', {fun: 'get_workflow'}, function(ret) {
-                    self.download('workflow.yaml',ret.data.workflow);
+                $.getJSON(Galaxy.root + 'api/webhooks/switchtour/data', {fun: 'get_workflow'}, (ret) => {
+                    this.download('workflow.yaml',ret.data.workflow);
                 });
             });
 
-            $('#switchtour-commands').on('click',function(e){
+            $('#switchtour-commands').on('click', (e) => {
                 e.stopPropagation();
-                $.getJSON(Galaxy.root + 'api/webhooks/switchtour/data', {fun: 'get_commands'}, function(ret) {
-                    self.download('commands.sh',ret.data.commands);
+                $.getJSON(Galaxy.root + 'api/webhooks/switchtour/data', {fun: 'get_commands'}, (ret) => {
+                    this.download('commands.sh',ret.data.commands);
                 });
             });
 
-            $('#switchtour-bibtex').on('click',function(e){
+            $('#switchtour-bibtex').on('click', (e) => {
                 e.stopPropagation();
-                $.getJSON(Galaxy.root + 'api/webhooks/switchtour/data', {fun: 'get_bibtex'}, function(ret) {
-                    self.download('citations.bib',ret.data.bibtex);
+                $.getJSON(Galaxy.root + 'api/webhooks/switchtour/data', {fun: 'get_bibtex'}, (ret) => {
+                    this.download('citations.bib',ret.data.bibtex);
                 });
             });
         },
 
         showMenu: function() {
-            $('#columns').css('filter', 'blur(5px)');
+            $('#columns').css('filter', 'blur(3px)');
+            $('#masthead').css('pointer-events', 'none');
             $('#columns').css('pointer-events', 'none');
+            $('#switchtour-masthead').css('pointer-events', 'auto');
             $('#switchtour-menu').show();
         },
 
         removeMenu: function() {
             $('#columns').css('filter', 'none');
             $('#columns').css('pointer-events', 'auto');
+            $('#masthead').css('pointer-events', 'auto');
             $('#switchtour-menu').hide();
+        },
+
+        showLoader: function() {
+            $('#columns').css('filter', 'blur(3px)');
+            $('#masthead').css('pointer-events', 'none');
+            $('#columns').css('pointer-events', 'none');
+            $('#switchtour-masthead').css('pointer-events', 'auto');
+            $('.modal-content').css('filter', 'blur(3px)');
+            $('.modal-content').css('pointer-events', 'none');
+            $('.modal').css('pointer-events', 'none');
+            $('#switchtour-loader').show();
+        },
+
+        removeLoader: function() {
+            $('#columns').css('filter', 'none');
+            $('#masthead').css('pointer-events', 'auto');
+            $('#columns').css('pointer-events', 'auto');
+            $('.modal-content').css('filter', 'none');
+            $('.modal-content').css('pointer-events', 'auto');
+            $('.modal').css('pointer-events', 'auto');
+            $('#switchtour-loader').hide();
         },
 
         abort: function() {
             this.$el.html(this.button({text: 'Restart'}));
             this.removeMenu();
+            this.removeLoader();
+            observeElements = [];
             tourcounter = 0;
-            if (typeof tour !== 'undefined' && ! tour.ended()) {
+            if (typeof tour !== 'undefined' && ! tourEnded) {
+                tourEnded = true;
                 tour.end();
             }
         },
 
         invoke: function() {
-            var self = this;
-            $.getJSON(Galaxy.root + 'api/webhooks/switchtour/data', {fun: ''}, function(ret) {
+            $.getJSON(Galaxy.root + 'api/webhooks/switchtour/data', {fun: ''}, (ret) => {
                 if (ret.success) {
                     if (tourcounter > 0) {
-                        $.getJSON(Galaxy.root + 'api/tours', function(tour) {
+                        $.getJSON(Galaxy.root + 'api/tours', (tour) =>  {
                             var choices = '';
                             var regex = new RegExp(tourprefix + '_' + tourcounter);
                             var url = Galaxy.root + 'static/welcome.html';
@@ -159,61 +188,82 @@ $(document).ready(function() {
                                                 async: false,
                                                 success: function() {
                                                     url = Galaxy.root + 'static/'+ tour[i].id + '.html'
+                                                },
+                                                error: function(e) {
+                                                    console.log(e);
                                                 }
                                             });
+                                        },
+                                        error: function(e) {
+                                            console.log(e);
                                         }
                                     });
-                                    choices = choices.concat(self.checkbox({value: tour[i].id, description: tour[i].description, url: url}));
+                                    choices = choices.concat(this.checkbox({value: tour[i].id, description: tour[i].description, url: url}));
                                 }
                             }
                             if(choices){
-                                $('#switchtour-text').html(self.text({header: 'Please select a task implementation', text: ''}));
+                                $('#switchtour-text').html(this.text({header: 'Please select an Atom', text: ''}));
                                 $('#switchtour-submit').show();
                             } else {
                                 switchtour.$el.html(switchtour.button({text: 'End'}));
                                 $('#switchtour-submit').hide();
-                                $('#switchtour-text').html(self.text({header: 'Success!', text: 'You completed this tour!<br>Please do not forget to...'}));
+                                $('#switchtour-text').html(this.text({header: 'Success!', text: 'You completed this tour!<br>Please do not forget to...'}));
                             }
                             $('#switchtour-checkbox').html(choices);
                             if (tourcounter > 1) { 
                                 $('#switchtour-download').show();
                             }
-                            self.showMenu();
+                            this.showMenu();
                         });
                     } else {
-                        self.$el.html(self.button({text: 'Abort'}));
-                        $.getJSON(Galaxy.root + 'api/webhooks/switchtour/data', {fun: 'new_history'}, function(ret) {
-                            // Galaxy.currHistoryPanel.refreshContents(); does not work
-							$('#history-refresh-button').click();
-                        });
-                        $.getJSON(Galaxy.root + 'api/tours', function(tour) {
+                        this.$el.html(this.button({text: 'Abort'}));
+                        $.getJSON(Galaxy.root + 'api/tours', (tours) => {
                             var choices = '';
                             var regex = new RegExp('destair_linker');
                             var url = Galaxy.root + 'static/welcome.html';
-                            for( var i in tour ) {
-                                if( regex.test(tour[i].id) ) {
+                            for( var i in tours ) {
+                                if( regex.test(tours[i].id) ) {
                                     $.ajax({
                                         url: Galaxy.root + 'static/test.html',
                                         async: false,
                                         success: function() {
                                             url = Galaxy.root + 'static/test.html';
                                             $.ajax({
-                                                url: Galaxy.root + 'static/'+ tour[i].id + '.html',
+                                                url: Galaxy.root + 'static/'+ tours[i].id + '.html',
                                                 async: false,
                                                 success: function() {
-                                                    url = Galaxy.root + 'static/'+ tour[i].id + '.html'
+                                                    url = Galaxy.root + 'static/'+ tours[i].id + '.html'
+                                                },
+                                                error: function(e) {
+                                                    console.log(e);
                                                 }
                                             });
+                                        },
+                                        error: function(e) {
+                                            console.log(e);
                                         }
                                     });
-                                    choices = choices.concat(self.checkbox({value: tour[i].tags[0], description: tour[i].description, url: url}));
+                                    choices = choices.concat(this.checkbox({value: tours[i].tags[0], description: tours[i].description, url: url}));
                                 }
                             }
-                            $('#switchtour-text').html(self.text({header: 'Welcome to de.STAIR guide', text: 'Which type of analysis do you want to perform?'}));
+                            $('#switchtour-text').html(this.text({header: 'Welcome to de.STAIR workflow generator', text: 'Which type of analysis do you want to perform?'}));
                             $('#switchtour-checkbox').html(choices);
                             $('#switchtour-submit').show();
                             $('#switchtour-download').hide();
-                            self.showMenu();
+                            this.showMenu();
+                        });
+
+                        $.ajax({
+                            url: Galaxy.root + 'api/webhooks/switchtour/data',
+                            data: {
+                                fun: 'update_tours'
+                            },
+                            async: false,
+                            success: function(ret) {
+                            },
+                            error: function(e) {
+                                console.log(e);
+                            }
                         });
                     }
                 } else {
@@ -223,7 +273,7 @@ $(document).ready(function() {
             });
         },
 
-        download: function(filename, data) {
+        download: (filename, data) => {
             var blob = new Blob([data], {type: 'application/octet-stream'});
             var e = document.createElement('a');
             document.body.appendChild(e);
@@ -233,31 +283,59 @@ $(document).ready(function() {
             document.body.removeChild(a);
         },
 
-        runSelection: function (){
-            var self = this;
+        runSelection: function() {
             var tourid = $("input[name='switchtour-select']").filter(':checked').val();
-            if (tourid && tourcounter == 0) {
+            if (tourid && tourcounter === 0) {
                 tourprefix = tourid; // from destair_linker
+                if (tourprefix !== 'test_tour'){
+                    $.getJSON(Galaxy.root + 'api/webhooks/switchtour/data', {fun: 'new_history'}, () => {
+                        // Galaxy.currHistoryPanel.refreshContents(); does not work
+                        $('#history-refresh-button').click();
+                    });
+                }
                 tourcounter++;
                 $("input[name='switchtour-select']").prop('checked', false);
                 this.invoke();
-            } else if (tourid) {                
+            } else if (tourid) {
                 tourcounter++;
                 this.removeMenu();
-                $.getJSON( Galaxy.root + 'api/tours/' + tourid, function( data ) {
-                    var tourdata = hooked_tour_from_data(data);
+
+                $.getJSON( Galaxy.root + 'api/tours/' + tourid, (data) => {
+                    //sanity check and alias definition
+                    let stepIdx = 0;
+                    for (step of data.steps) {
+                        if (step.postclick) {
+                            step.onnextclick = step.postclick;
+                            step.postclick = undefined;
+                        }
+                        if (step.preclick) {
+                            step.onloadclick = step.preclick;
+                            step.preclick = undefined;
+                        }
+                        var allowedKeys = new Set(["title", "element", "placement", "content", "onnextclick", "onprevclick",
+                                                   "textinsert", "onloadwait", "onloadclick", "onnextwait", "duration", "delay",
+                                                   "orphan", "backdrop", "pointer", "postclick", "preclick"]);
+                        Object.keys(step).forEach(function(key,index) {
+                             if(! allowedKeys.has(key)){
+                                 alert("Error in tour " + tourid + ": step " + (stepIdx + 1) + " invalid key " + key);
+                             }
+                        });
+                        ++stepIdx;
+                    } 
+                    
                     sessionStorage.setItem('activeGalaxyTour', JSON.stringify(data));
                     tour = new Tour(_.extend({
-                        steps: tourdata.steps,
+                        steps: data.steps,
                     }, tour_opts));
                     tour.restart();
-                });
+                });                
             }
         },
-
     });
 
     var switchtour = new SwitchtourView();
+	var tour;
+
     var Galaxy = window.bundleEntries.getGalaxyInstance();
 //	for(var k in Galaxy) {
 //		v = Galaxy[k];
@@ -267,58 +345,184 @@ $(document).ready(function() {
 
     var tourcounter = 0;
     var tourprefix = '';
-    var tour;
-
-    var hooked_tour_from_data = function (data) {
-        _.each(data.steps, function (step) {
-            if (step.preclick){
-                step.onShow = function(){
-                    _.each(step.preclick, function(preclick){
-                        $(preclick).click();
-                    });
-                };
-            }
-            if (step.postclick){
-                step.onHide = function(){
-                    _.each(step.postclick, function(postclick){
-                        $(postclick).click();
-                    });
-                };
-            }
-            if (step.textinsert){
-                step.onShow = function(){
-                    $(step.element).val(step.textinsert).trigger("change");
-                };
-            }
-        });
-        return data;
-    };
+    var tourEnded = false;
 
     var tour_opts = {
         storage: window.sessionStorage,
 
-        onEnd: function(){
+        keyboard: false,
+        
+        onStart: function(){
+            tourEnded = false;
+        },
+
+        onNext: function() {
+            var step = tour.getStep(tour.getCurrentStep());
+            if(step.onnextclick) {
+                _.each(step.onnextclick, (e) => {
+                    //document.getElementsByClassName(e.replace(/\./g, " "))[0].click();
+                    $(e)[0].click();
+                });
+            }
+            step = tour.getStep(tour.getCurrentStep()+1);
+            if (typeof step === 'undefined') {
+                tour.end();
+                switchtour.invoke();
+            }
+        },
+
+        onPrev: function() {
+            var step = tour.getStep(tour.getCurrentStep());
+            if(step.onprevclick) {
+                _.each(step.onprevclick, (e) => {
+                    //document.getElementsByClassName(e.replace(/\./g, " "))[0].click();
+                    $(e)[0].click();
+                });
+            }
+        },
+
+        onShown: function() {
+            $('#masthead').css('pointer-events', 'none');
+            $('#columns').css('pointer-events', 'none');
+            $('.modal-content').css('pointer-events', 'none');
+            $('.modal').css('pointer-events', 'none');
+            $('#switchtour-masthead').css('pointer-events', 'auto');
+            //$('.modal-content')[0].css('pointer-events', 'none');
+            var step = tour.getStep(tour.getCurrentStep());
+            if (step.onloadclick || step.textinsert){
+                _.each(step.onloadclick, (e) => {
+                    //document.getElementsByClassName(e.replace(/\./g, " "))[0].click();
+                    $(e)[0].click();
+                });
+                if(step.textinsert){
+                    $(step.element).val(step.textinsert).trigger("change");
+                }
+            }
+            if(step.element && step.pointer){
+                $(step.element).css('pointer-events', 'auto');
+            }
+        },
+
+        onEnd: function() {
+            $('#masthead').css('pointer-events', 'auto');
+            $('#columns').css('pointer-events', 'auto');
+            $('.modal').css('pointer-events', 'auto');
+            $('.modal-content').css('pointer-events', 'auto');            
+            tourEnded = true;
             sessionStorage.removeItem('activeGalaxyTour');
             var step = tour.getStep(tour.getCurrentStep()+1);
             if (typeof step === 'undefined') {
                 switchtour.invoke();
             } else {
-                alert("Aborted");
                 tourcounter = 0;
                 switchtour.$el.html(switchtour.button({text: 'Restart'}));
             }
         },
 
-        delay: 300,
+        delay: 0,
 
         orphan: true,
 
-        onNext: function(){
-            var step = tour.getStep(tour.getCurrentStep()+1);
-            if (typeof step === 'undefined') {
-                tour.end();
-                switchtour.invoke();
+        //added id
+		template: `<div id="tour-bubble" class="popover" role="tooltip">
+                       <div class="arrow"></div> 
+                       <h3 class="popover-header"></h3> 
+	                   <div class="popover-body"></div> 
+                           <div class="popover-navigation"><div class="btn-group">
+       			               <button class="btn btn-sm btn-secondary" data-role="prev">&laquo; Prev</button>
+                               <button class="btn btn-sm btn-secondary" data-role="next">Next &raquo;</button>
+                           </div>
+                           <button class="btn btn-sm btn-secondary" data-role="end">End tour</button>
+                       </div>
+                   </div>`,
+
+         onShow: function(tour,i) {
+            if(i === null){
+                i = 0;
+            }
+			let step = tour.getStep(i);
+            if (typeof step !== 'undefined') {
+                if(step.onloadwait){
+                    _.each(step.onloadwait, (e) => {
+                        if(! e.hasOwnProperty('count')){
+                            e.count = 1;
+                        }
+                        observeElements.push({element: e.element, count: e.count});
+                    });
+                }
+				if(step.element){
+                    observeElements.push({element: step.element, count: 1});
+                }
+                if(step.onloadclick){
+                    _.each(step.onloadclick, (e) => {
+                        observeElements.push({element: e, count: 1});
+                    });
+                }
+                if(step.preclick){
+                    _.each(step.preclick, (e) => {
+                        observeElements.push({element: e, count: 1});
+                    });
+                }
+                if(step.onnextclick){
+                    _.each(step.onnextclick, (e) => {
+                        observeElements.push({element: e, count: 1});
+                    });
+                }
+                if(step.postclick){
+                    _.each(step.postclick, (e) => {
+                        observeElements.push({element: e, count: 1});
+                    });
+                }
+                if(step.onprevclick){
+                    _.each(step.onprevclick, (e) => {
+                        observeElements.push({element: e, count: 1});
+                    });
+                }
+
+                if (observeElements.length > 0){
+                    const promise = new Promise( (resolve,reject) => {
+                        promiseResolve = resolve;
+                        promiseReject = reject;
+                    });
+                    switchtour.showLoader();
+                    timeoutLoader();
+                    observer.observe(document, {subtree:true, childList:true} );
+                    $('<div>').attr('type','hidden').appendTo('body').remove(); //trigger observer
+                    return promise;
+                }				
+            }
+		}
+    };
+
+    var currentTimeout;
+    function timeoutLoader(){
+        if(! tourEnded){
+            currentTimeout = setTimeout(function(){
+                if (confirm('At least one HTML element is not available yet\n\nIf some history jobs are still pending (grey or yellow),\nplease wait a little longer \t\t[OK]\nOr return to the previous step by \t\t[CANCEL]')) {
+                    timeoutLoader();
+                } else {
+                    promiseReject();
+                    switchtour.removeLoader();
+                    observeElements = [];
+                    tour.prev();
+                    //switchtour.abort();
+                }
+            }, 10000); //todo kill tour or goto step-1 -> buuuut not if waiting for green job
+        }
+    }
+
+    var observeElements = [];
+    var observer = new MutationObserver((mutations, observer) => {
+        for(let i=observeElements.length-1; i >= 0 ; i--){
+            if($(observeElements[i].element).length === observeElements[i].count){
+                observeElements.splice(i,1);
             }
         }
-    };
+        if(observeElements.length === 0){
+            observer.disconnect();
+            clearTimeout(currentTimeout);
+            switchtour.removeLoader();
+            promiseResolve();
+        }
+    });
 });
