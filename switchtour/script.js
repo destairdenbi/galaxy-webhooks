@@ -207,7 +207,7 @@ $(document).ready( () => {
                                 }
                             }
                             if(choices){
-                                $('#switchtour-text').html(this.text({header: 'Please select Atom', text: ''}));
+                                $('#switchtour-text').html(this.text({header: 'Please select an atom', text: ''}));
                                 $('#switchtour-submit').show();
                             } else {
                                 switchtour.$el.html(switchtour.button({text: 'End'}));
@@ -411,6 +411,9 @@ $(document).ready( () => {
                 $('#switchtour-masthead').css('pointer-events', 'auto');
             }
             var step = tour.getStep(tour.getCurrentStep());
+            if (step.element){
+                $(step.element)[0].scrollIntoView(false);
+            }
             if (step.onloadclick || step.textinsert || step.select){
                 if(step.iframeelement){
                     _.each(step.onloadclick, (e) => {
@@ -493,35 +496,38 @@ $(document).ready( () => {
                             if(! e.hasOwnProperty('count')){
                                 e.count = 1;
                             }
-                            observeElements.push({element: e.element, count: e.count});
+                            if(! e.hasOwnProperty('mincount')){
+                                e.mincount = Infinity;
+                            }
+                            observeElements.push({element: e.element, count: e.count, mincount: e.mincount});
                         });
                     }
                     if(step.element){
-                        observeElements.push({element: step.element, count: 1});
+                        observeElements.push({element: step.element, count: 1, mincount: Infinity});
                     }
                     if(step.onloadclick){
                         _.each(step.onloadclick, (e) => {
-                            observeElements.push({element: e, count: 1});
+                            observeElements.push({element: e, count: 1, mincount: Infinity});
                         });
                     }
                     if(step.preclick){
                         _.each(step.preclick, (e) => {
-                            observeElements.push({element: e, count: 1});
+                            observeElements.push({element: e, count: 1, mincount: Infinity});
                         });
                     }
                     if(step.onnextclick){
                         _.each(step.onnextclick, (e) => {
-                            observeElements.push({element: e, count: 1});
+                            observeElements.push({element: e, count: 1, mincount: Infinity});
                         });
                     }
                     if(step.postclick){
                         _.each(step.postclick, (e) => {
-                            observeElements.push({element: e, count: 1});
+                            observeElements.push({element: e, count: 1, mincount: Infinity});
                         });
                     }
                     if(step.onprevclick){
                         _.each(step.onprevclick, (e) => {
-                            observeElements.push({element: e, count: 1});
+                            observeElements.push({element: e, count: 1, mincount: Infinity});
                         });
                     }
 
@@ -545,7 +551,7 @@ $(document).ready( () => {
     function timeoutLoader(){
         if(! tourEnded){
             currentTimeout = setTimeout(function(){
-                if (confirm('At least one HTML element is not available yet\n\n' + observeElements[0].element + '\n\nIf some history jobs are still pending (grey or yellow),\nplease wait a little longer \t\t[OK]\nOr return to the previous step by \t\t[CANCEL]')) {
+                if (confirm('At least one HTML element is not available yet\n\nIf some history jobs are still pending (grey or yellow),\nplease wait a little longer [OK]\nOr return to the previous step by [CANCEL]')) {
                     timeoutLoader();
                 } else {
                     promiseReject();
@@ -561,7 +567,7 @@ $(document).ready( () => {
     var observeElements = [];
     var observer = new MutationObserver((mutations, observer) => {
         for(let i=observeElements.length-1; i >= 0 ; i--){
-            if($(observeElements[i].element).length === observeElements[i].count){
+            if($(observeElements[i].element).length === observeElements[i].count || $(observeElements[i].element).length >= observeElements[i].mincount){
                 observeElements.splice(i,1);
             }
         }
