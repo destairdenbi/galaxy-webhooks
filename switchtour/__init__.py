@@ -63,7 +63,7 @@ class Switchtour(object):
     def get_workflow(this):
         job_ids = []
         for e in this.history.contents_iter():
-            if (e.creating_job.exit_code == 'none') or (e.creating_job.exit_code == 0):
+            if not e.deleted and ((e.creating_job.exit_code == 'none') or (e.creating_job.exit_code == 0)):
                 job_ids.append(this.trans.app.security.encode_id(e.creating_job.id))
 
         for w in this.trans.sa_session.query(this.trans.app.model.StoredWorkflow).filter_by(user=this.user, name='de.STAIR Guide Workflow (non-persistent!)', deleted=False).all():
@@ -78,7 +78,6 @@ class Switchtour(object):
             w = this.trans.sa_session.query(this.trans.app.model.StoredWorkflow).filter_by(user=this.user, deleted=False).all()[0]
 
             this.workflow = WorkflowController(this.trans.app).for_direct_import(this.trans,this.trans.app.security.encode_id(w.id))
-
         return {
             'workflow': this.workflow
         }
@@ -108,6 +107,7 @@ class Switchtour(object):
                         pass
                 bib = bib.lstrip()
                 if not bib in citations:
+                    citations.append(bib)
                     this.bibtex = this.bibtex + "\n\n" + bib
         return {
             'bibtex': this.bibtex

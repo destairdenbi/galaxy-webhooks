@@ -412,15 +412,28 @@ $(document).ready( () => {
             }
             var step = tour.getStep(tour.getCurrentStep());
             if (step.onloadclick || step.textinsert || step.select){
-                _.each(step.onloadclick, (e) => {
-                    $(e)[0].click();
-                });
-                if(step.textinsert){
-                    $(step.element).val(step.textinsert).trigger("change");
+                if(step.iframeelement){
+                    _.each(step.onloadclick, (e) => {
+                        $("#galaxy_main").contents().find(e)[0].click();
+                    });
+                    if(step.textinsert){
+                        $("#galaxy_main").contents().find(step.iframeelement).val(step.textinsert).trigger("change");
+                    }
+                    _.each(step.select, (e) => {
+                        $("#galaxy_main").contents().find(e).prop("selected", true);
+                    });
+
+                } else {
+                    _.each(step.onloadclick, (e) => {
+                        $(e)[0].click();
+                    });
+                    if(step.textinsert){
+                        $(step.element).val(step.textinsert).trigger("change");
+                    }
+                    _.each(step.select, (e) => {
+                        $(e).prop("selected", true);
+                    });
                 }
-                _.each(step.select, (e) => {
-                    $(e).prop("selected", true);
-                });
             }
             if(step.element && step.pointer){
                 $(step.element).css('pointer-events', 'auto');
@@ -467,7 +480,6 @@ $(document).ready( () => {
 			let step = tour.getStep(i);
             if (typeof step !== 'undefined') {
                 if(step.iframeelement){
-                    let rect0 = $('#masthead')[0].getBoundingClientRect();
                     let rect1 = $('.center-container')[0].getBoundingClientRect();
                     let rect2 = $("#galaxy_main").contents().find(step.iframeelement)[0].getBoundingClientRect();
                     let e = document.getElementById('iframe-helper');
