@@ -320,7 +320,7 @@ $(document).ready( () => {
                             step.preclick = undefined;
                         }
                         var allowedKeys = new Set(["title", "element", "placement", "content", "onnextclick", "onprevclick",
-                                                   "textinsert", "select" , "onloadwait", "onloadclick", "onnextwait", "duration", "delay",
+                                                   "textinsert", "select" , "unselect", "onloadwait", "onloadclick", "onnextwait", "duration", "delay",
                                                    "orphan", "backdrop", "pointer", "postclick", "preclick", "iframeelement"]);
                         Object.keys(step).forEach(function(key,index) {
                              if(! allowedKeys.has(key)){
@@ -414,7 +414,7 @@ $(document).ready( () => {
             if (step.element){
                 $(step.element)[0].scrollIntoView(false);
             }
-            if (step.onloadclick || step.textinsert || step.select){
+            if (step.onloadclick || step.textinsert || step.select || step.unselect){
                 if(step.iframeelement){
                     _.each(step.onloadclick, (e) => {
                         $("#galaxy_main").contents().find(e)[0].click();
@@ -422,10 +422,12 @@ $(document).ready( () => {
                     if(step.textinsert){
                         $("#galaxy_main").contents().find(step.iframeelement).val(step.textinsert).trigger("change");
                     }
+                    _.each(step.unselect, (e) => {
+                        $("#galaxy_main").contents().find(e).prop("selected", false);
+                    });
                     _.each(step.select, (e) => {
                         $("#galaxy_main").contents().find(e).prop("selected", true);
                     });
-
                 } else {
                     _.each(step.onloadclick, (e) => {
                         $(e)[0].click();
@@ -433,6 +435,9 @@ $(document).ready( () => {
                     if(step.textinsert){
                         $(step.element).val(step.textinsert).trigger("change");
                     }
+                    _.each(step.unselect, (e) => {
+                        $(e).prop("selected", false);
+                    });
                     _.each(step.select, (e) => {
                         $(e).prop("selected", true);
                     });
@@ -532,6 +537,7 @@ $(document).ready( () => {
                     }
 
                     if (observeElements.length > 0){
+                        console.log('wait for: ', observeElements);
                         const promise = new Promise( (resolve,reject) => {
                             promiseResolve = resolve;
                             promiseReject = reject;
