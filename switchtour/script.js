@@ -320,7 +320,7 @@ $(document).ready( () => {
                             step.preclick = undefined;
                         }
                         var allowedKeys = new Set(["title", "element", "placement", "content", "onnextclick", "onprevclick",
-                                                   "textinsert", "select" , "unselect", "onloadwait", "onloadclick", "onnextwait", "duration", "delay",
+                                                   "textinsert", "select" , "unselect", "onloadwait", "onloadclick", "duration", "delay",
                                                    "orphan", "backdrop", "pointer", "postclick", "preclick", "iframeelement"]);
                         Object.keys(step).forEach(function(key,index) {
                              if(! allowedKeys.has(key)){
@@ -424,9 +424,11 @@ $(document).ready( () => {
                     }
                     _.each(step.unselect, (e) => {
                         $("#galaxy_main").contents().find(e).prop("selected", false);
+                        $("#galaxy_main").contents().find(e).prop("checked", false);
                     });
                     _.each(step.select, (e) => {
                         $("#galaxy_main").contents().find(e).prop("selected", true);
+                        $("#galaxy_main").contents().find(e).prop("checked", true);
                     });
                 } else {
                     _.each(step.onloadclick, (e) => {
@@ -437,9 +439,11 @@ $(document).ready( () => {
                     }
                     _.each(step.unselect, (e) => {
                         $(e).prop("selected", false);
+                        $(e).prop("checked", false);
                     });
                     _.each(step.select, (e) => {
                         $(e).prop("selected", true);
+                        $(e).prop("checked", true);
                     });
                 }
             }
@@ -546,6 +550,9 @@ $(document).ready( () => {
                         timeoutLoader();
                         observer.observe(document, {subtree:true, childList:true} );
                         $('<div>').attr('type','hidden').appendTo('body').remove(); //trigger observer
+                        setTimeout(function(){
+                            $('<div>').attr('type','hidden').appendTo('body').remove(); //trigger observer again after delay, in case we are too fast
+                        }, 500);
                         return promise;
                     }
                 }
@@ -558,6 +565,7 @@ $(document).ready( () => {
         if(! tourEnded){
             currentTimeout = setTimeout(function(){
                 if (confirm('At least one HTML element is not available yet\n\nIf some history jobs are still pending (grey or yellow),\nplease wait a little longer [OK]\nOr return to the previous step by [CANCEL]')) {
+                    $('<div>').attr('type','hidden').appendTo('body').remove(); //trigger observer
                     timeoutLoader();
                 } else {
                     promiseReject();
@@ -572,12 +580,16 @@ $(document).ready( () => {
 
     var observeElements = [];
     var observer = new MutationObserver((mutations, observer) => {
+        let ispresent = 0;
         for(let i=observeElements.length-1; i >= 0 ; i--){
             if($(observeElements[i].element).length === observeElements[i].count || $(observeElements[i].element).length >= observeElements[i].mincount){
-                observeElements.splice(i,1);
+                console.log($(observeElements[i].element).length,' times found ',observeElements[i].element);
+                ispresent++;
+                //observeElements.splice(i,1);
             }
         }
-        if(observeElements.length === 0){
+        if(ispresent === observeElements.length){
+            observeElements = [];
             observer.disconnect();
             clearTimeout(currentTimeout);
             switchtour.removeLoader();
