@@ -7,7 +7,7 @@ from galaxy.managers.histories import HistoryManager
 #from galaxy.webapps.galaxy.api.tours import ToursController
 
 import logging
-import re
+#import re
 log = logging.getLogger(__name__)
 
 class Switchtour(object):
@@ -19,6 +19,7 @@ class Switchtour(object):
         this.tour = ''
         this.lasttool = ''
         this.bibtex = ''
+        this.workflowid = ''
         this.workflow = ''
         this.commands = ''
 
@@ -61,6 +62,9 @@ class Switchtour(object):
 
 
     def get_workflow(this):
+        if not this.user:
+            raise Exception, 'anon user'
+
         job_ids = []
         for e in this.history.contents_iter():
             if not e.deleted and ((e.creating_job.exit_code == 'none') or (e.creating_job.exit_code == 0)):
@@ -73,12 +77,16 @@ class Switchtour(object):
                 pass
 
         if job_ids:
+            # if user is anon, this will lead to uncachable HTTP access denied 403 erorr
             WorkflowsAPIController(this.trans.app).create(this.trans, {'from_history_id': this.history_id, 'workflow_name': 'de.STAIR Guide Workflow (non-persistent!)', 'job_ids': job_ids, 'dataset_ids': [], 'dataset_collection_ids': []})
 
-            w = this.trans.sa_session.query(this.trans.app.model.StoredWorkflow).filter_by(user=this.user, deleted=False).all()[0]
+            w = this.trans.sa_session.query(this.trans.app.model.StoredWorkflow).filter_by(user=this.user, name='de.STAIR Guide Workflow (non-persistent!)', deleted=False).all()[0]
+            
+            this.workflowid = this.trans.app.security.encode_id(w.id)
+            this.workflow = WorkflowController(this.trans.app).for_direct_import(this.trans,this.workflowid)
 
-            this.workflow = WorkflowController(this.trans.app).for_direct_import(this.trans,this.trans.app.security.encode_id(w.id))
         return {
+            'workflowid': this.workflowid,
             'workflow': this.workflow
         }
 
@@ -119,7 +127,6 @@ def main(trans, webhook, params):
 
     try:
         #apikey = api_keys.ApiKeyManager(trans.app).get_or_create_api_key(trans.user) # else not logged in error
-
         switchtour = Switchtour(trans)
 
         if params['fun']:

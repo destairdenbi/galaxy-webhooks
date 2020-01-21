@@ -106,7 +106,14 @@ $(document).ready( () => {
             $('#switchtour-workflow').on('click', (e) => {
                 e.stopPropagation();
                 $.getJSON(Galaxy.root + 'api/webhooks/switchtour/data', {fun: 'get_workflow'}, (ret) => {
-                    this.download('workflow.yaml',ret.data.workflow);
+                    console.log('erorrrrrrr ',ret);
+                    if (ret.success) {
+                        this.download('workflow.yaml',ret.data.workflow);
+                        // window.open(Galaxy.root + 'api/workflows/' + ret.data.workflowid + '/download?format=json-download','galaxy_main')
+                    } else {
+                        alert('Please register and login to use this feature!\n\nMeanwhile we will offer to download your history instead.');
+                        window.open(Galaxy.root + 'history/export_archive','galaxy_main');
+                    }
                 });
             });
 
