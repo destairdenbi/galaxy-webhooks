@@ -66,10 +66,34 @@ The plugin can be tested, modified, and further extended. To do so, you will
 need to install the atoms as well.  
 The following sections will help you setting up the Galaxy framework to
 contribute to the plugin.
+
 <p align="right"><a href="#top">&#x25B2; back to top</a></p>
 
 
-### Set up the Galaxy environment
+### Option 1: Docker bind mount method
+
+Run the Galaxy Docker container by creating a bind mount
+```
+$ docker run -d -p 8080:80 --name destair -v /absolute/path/to/local/directory/:/export/ quay.io/destair/galaxy-workflow-generator:latest
+```
+for more parameters and further help, consult
+[these instructions](https://github.com/destairdenbi/galaxy-workflow-generator#run-the-container).
+
+
+Once the container is ready, you will be able to modify our de.STAIR webhook client site javascript and backend python script
+```
+/absolute/path/to/local/directory/export/galaxy-central/config/plugins/webhooks/switchtour
+```
+Now restart the running Galaxy instance and access it via a webbrowser from the following address ``localhost:8080``.
+```
+$ docker exec destair supervisorctl restart galaxy:
+```
+
+<p align="right"><a href="#top">&#x25B2; back to top</a></p>
+
+
+
+### Option 2: Local Galaxy setup method
 
 Create a directory for the Galaxy repository
 ```
@@ -89,7 +113,7 @@ $ git checkout v19.01
 <p align="right"><a href="#top">&#x25B2; back to top</a></p>
 
 
-### Set up the de.STAIR atoms
+#### Set up the de.STAIR atoms
 
 Create a directory for the de.STAIR Galaxy atoms repository
 ```
@@ -108,14 +132,14 @@ $ $DESTAIR_GALAXY_ATOMS/setup.sh
 <p align="right"><a href="#top">&#x25B2; back to top</a></p>
 
 
-### Set up the de.STAIR plugin
+#### Set up the de.STAIR plugin
 
 Create a directory for the de.STAIR Galaxy plugin repository
 ```
 $ export DESTAIR_GALAXY_PLUGIN=/path/to/destair-galaxy-plugin
 ```
 
-Clone the de.STAIR Galaxy plugin repository
+Clone the de.STAIR Galaxy plugin repository and modify our de.STAIR switchtour client site javascript and backend python script according to your needs
 ```
 $ git clone https://github.com/destairdenbi/galaxy-webhooks.git $DESTAIR_GALAXY_PLUGIN
 ```
@@ -127,7 +151,7 @@ $ $DESTAIR_GALAXY_PLUGIN/setup.sh
 <p align="right"><a href="#top">&#x25B2; back to top</a></p>
 
 
-### Run the Galaxy framework
+#### Run the Galaxy framework
 
 Run the Galaxy launch script to verify the Galaxy framework setup and the inclusion of the new tools
 ```
