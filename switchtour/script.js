@@ -117,10 +117,9 @@ $(document).ready( () => {
                 e.stopPropagation();
                 $.getJSON(Galaxy.root + 'api/webhooks/switchtour/data', {fun: 'get_workflow'}, (ret) => {
                     if (ret.success) {
-                        this.download('workflow.yaml',ret.data.workflow);
-                        // window.open(Galaxy.root + 'api/workflows/' + ret.data.workflowid + '/download?format=json-download','galaxy_main')
+                        this.download('workflow.yaml',JSON.stringify(ret.data.workflow, null, 2));
                     } else {
-                        alert('Please register and login to use this feature!\n\nMeanwhile we will offer to download your history instead.');
+                        alert('Something unexpected happened!\n\nWe will offer to download your history instead.');
                         window.open(Galaxy.root + 'history/export_archive','galaxy_main');
                     }
                 });
@@ -316,7 +315,7 @@ $(document).ready( () => {
 						});
 					}
                 } else {
-                    alert("Please login first");
+                    alert("Something unexpected happened!");
                     console.error('[ERROR] "' + url + '":\n' + data.error);
                 }
             });
