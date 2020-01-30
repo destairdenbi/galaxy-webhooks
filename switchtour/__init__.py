@@ -1,35 +1,33 @@
-from galaxy.managers import api_keys
-from galaxy.webapps.galaxy.api.workflows import WorkflowsAPIController
-from galaxy.webapps.galaxy.controllers.workflow import WorkflowController
-from galaxy.managers.citations import CitationsManager
-from galaxy.webapps.galaxy.controllers.history import HistoryController
-from galaxy.managers.histories import HistoryManager
-#from galaxy.webapps.galaxy.api.tours import ToursController
-
+import os
 import logging
-#import re
+import re
 log = logging.getLogger(__name__)
 
 class Switchtour(object):
     def __init__(this, trans):
         this.trans = trans
-        this.user = this.trans.user
+        this.user = this.trans.get_user()
         this.history = this.trans.get_history()
         this.history_id = this.trans.app.security.encode_id(this.history.id)
-        this.tour = ''
-        this.lasttool = ''
         this.bibtex = ''
-        this.workflowid = ''
         this.workflow = ''
         this.commands = ''
 
+    def get_user(this):
+        from galaxy.managers.users import UserManager
+        
+        return {
+            'name': this.user.username,
+            'isadmin': UserManager(this.trans.app).is_admin(this.user)
+        }
+
     def update_tours(this):
-        this.trans.app.tour_registry.load_tours()
-        #tc = ToursController(this.trans.app)
-        #for t in this.trans.app.tour_registry.tours_by_id_with_description():
-        #     tc.update_tour(this.trans, t['id'])
+        if UserManager(this.trans.app).is_admin(this.user):
+            this.trans.app.tour_registry.load_tours()
         
     def new_history(this):
+        from galaxy.managers.histories import HistoryManager
+        
         for h in HistoryManager(this.trans.app).by_user(this.user):
             if h.name == 'de.STAIR Guide History (non-persistent!)':
                 HistoryManager(this.trans.app).purge(h)
@@ -48,13 +46,11 @@ class Switchtour(object):
 
     def get_commands(this):
         for e in this.history.contents_iter():
-            this.lasttool = e.creating_job.get_tool_id()
-
-            if (this.lasttool == 'upload1') or (e.creating_job.check_if_output_datasets_deleted() is True):
+            if e.creating_job.tool_id == 'upload1' or e.creating_job.any_output_dataset_deleted is True or e.creating_job.any_output_dataset_collection_instances_deleted is True:
                 continue
 
-            if (e.creating_job.exit_code == 'none') or (e.creating_job.exit_code == 0):
-                this.commands = this.commands + "\n" + e.creating_job.get_command_line() if this.commands else e.creating_job.get_command_line()
+            if e.creating_job.exit_code == 'none' or e.creating_job.exit_code == 0:
+                this.commands = this.commands + "\n" + e.creating_job.command_line if this.commands else e.creating_job.command_line
 
         return {
             'commands': this.commands
@@ -62,43 +58,68 @@ class Switchtour(object):
 
 
     def get_workflow(this):
+        from galaxy import util
+        from galaxy.webapps.galaxy.controllers.workflow import WorkflowController
+        from galaxy.workflow.extract import extract_workflow
+        from galaxy.workflow.extract import summarize
+                
+        tmpuser = this.user
         if not this.user:
-            raise Exception, 'anon user'
+            #tmpuser = UserManager(this.trans.app).admins()[0]
+            tmpusername = os.getenv('GALAXY_DEFAULT_WORKFLOWGENERATOR_USER', os.environ['GALAXY_DEFAULT_ADMIN_USER'])
+            tmpuser = this.trans.sa_session.query(this.trans.app.model.User).filter_by(username=tmpusername,deleted=False).all()[0]
 
-        job_ids = []
-        for e in this.history.contents_iter():
-            if not e.deleted and ((e.creating_job.exit_code == 'none') or (e.creating_job.exit_code == 0)):
-                job_ids.append(this.trans.app.security.encode_id(e.creating_job.id))
+        #html = WorkflowController(this.trans.app).build_from_current_history(this.trans)
+        #use reimplementation since controller does user=trans.get_user() || error
 
-        for w in this.trans.sa_session.query(this.trans.app.model.StoredWorkflow).filter_by(user=this.user, name='de.STAIR Guide Workflow (non-persistent!)', deleted=False).all():
-            try:
-                WorkflowController(this.trans.app).delete(this.trans, id=this.trans.app.security.encode_id(w.id))
-            except:
-                pass
+        jobs, warnings = summarize(this.trans)
+        html = this.trans.fill_template("workflow/build_from_current_history.mako", jobs=jobs, warnings=warnings, history=this.history)
+        
+        job_ids = re.findall('job_ids.+value="([^"]+)',html)
+        dataset_ids = re.findall('dataset_ids.+value="([^"]+)',html)
+        dataset_names = re.findall('dataset_names.+value="([^"]+)',html)
+        dataset_collection_ids = re.findall('dataset_collection_ids.+value="(\d+)',html)
+        dataset_collection_names = re.findall('dataset_collection_names.+value="(\d+)',html)
 
-        if job_ids:
-            # if user is anon, this will lead to uncachable HTTP access denied 403 erorr
-            WorkflowsAPIController(this.trans.app).create(this.trans, {'from_history_id': this.history_id, 'workflow_name': 'de.STAIR Guide Workflow (non-persistent!)', 'job_ids': job_ids, 'dataset_ids': [], 'dataset_collection_ids': []})
+        #w = WorkflowController(this.trans.app).build_from_current_history(this.trans,job_ids=job_ids,dataset_ids=dataset_ids,dataset_collection_ids=dataset_collection_ids, workflow_name='test', dataset_names=dataset_names, dataset_collection_names=dataset_collection_names)
+        # use reimplementation again
+      
+        dataset_names = util.listify(dataset_names)
+        dataset_collection_names = util.listify(dataset_collection_names)
+        stored = extract_workflow(
+            this.trans,
+            user=tmpuser,
+            job_ids=job_ids,
+            dataset_ids=dataset_ids,
+            dataset_collection_ids=dataset_collection_ids,
+            workflow_name='de.STAIR Guide Workflow',
+            dataset_names=dataset_names,
+            dataset_collection_names=dataset_collection_names
+        )
+        #workflow_id = this.trans.security.encode_id(stored.id)
 
-            w = this.trans.sa_session.query(this.trans.app.model.StoredWorkflow).filter_by(user=this.user, name='de.STAIR Guide Workflow (non-persistent!)', deleted=False).all()[0]
-            
-            this.workflowid = this.trans.app.security.encode_id(w.id)
-            this.workflow = WorkflowController(this.trans.app).for_direct_import(this.trans,this.workflowid)
+        this.workflow = WorkflowController(this.trans.app)._workflow_to_dict(this.trans, stored)
+
+        # reimplement deletion which originally makes use of get_stored_workflow which failes in case of anon user
+        stored.deleted = True
+        tmpuser.stored_workflow_menu_entries = [entry for entry in tmpuser.stored_workflow_menu_entries if entry.stored_workflow != stored]
+        this.trans.sa_session.add(stored)
+        this.trans.sa_session.flush()
 
         return {
-            'workflowid': this.workflowid,
             'workflow': this.workflow
         }
 
 
     def get_bibtex(this):
+        from galaxy.managers.citations import CitationsManager
+        
         citations = []
         for e in this.history.contents_iter():
-            this.lasttool = e.creating_job.get_tool_id()
-            if (e.creating_job.check_if_output_datasets_deleted() is True):
+            if e.creating_job.any_output_dataset_deleted is True or e.creating_job.any_output_dataset_collection_instances_deleted is True:
                 continue
 
-            b = CitationsManager(this.trans.app).citations_for_tool_ids([this.lasttool])
+            b = CitationsManager(this.trans.app).citations_for_tool_ids([e.creating_job.tool_id])
             
             if b:
                 bib = b[0].to_bibtex()
@@ -113,10 +134,12 @@ class Switchtour(object):
                             bib = tmp
                     except:
                         pass
+
                 bib = bib.lstrip()
                 if not bib in citations:
                     citations.append(bib)
                     this.bibtex = this.bibtex + "\n\n" + bib
+
         return {
             'bibtex': this.bibtex
         }
@@ -126,7 +149,6 @@ def main(trans, webhook, params):
     error = ''
 
     try:
-        #apikey = api_keys.ApiKeyManager(trans.app).get_or_create_api_key(trans.user) # else not logged in error
         switchtour = Switchtour(trans)
 
         if params['fun']:

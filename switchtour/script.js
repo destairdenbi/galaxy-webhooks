@@ -22,13 +22,14 @@ $(document).ready( () => {
 
         menu: _.template(
 			'<div id="switchtour-menu">' +
-				'<div id="switchtour-config" align="left" style="display:none">' +
+				'<div id="switchtour-config" style="display:none">' +
 					'<h3>Admin configuration</h3>' +
-					'<form>' +
-						'<input id="switchtour-testmode" type="checkbox"> Do not nuke history and enable pointer events' +
+					'<div align="left">' +
+						'<button id="switchtour-config-update" class="float-right">Update tours DB</button>' +
+						'<input id="switchtour-config-keephist" type="checkbox"> Keep history' +
 						'<br>' +
-						'<input id="switchtour-updatetours" type="checkbox"> Update tours DB (please submit and restart plugin)' +
-					'</form>' +
+						'<input id="switchtour-config-mouse" type="checkbox"> Enable mouse events' +
+					'</div>' +
 					'<br>' +
 				'</div>' +
                 '<div id="switchtour-text"></div>' +
@@ -115,12 +116,10 @@ $(document).ready( () => {
             $('#switchtour-workflow').on('click', (e) => {
                 e.stopPropagation();
                 $.getJSON(Galaxy.root + 'api/webhooks/switchtour/data', {fun: 'get_workflow'}, (ret) => {
-                    console.log('erorrrrrrr ',ret);
                     if (ret.success) {
-                        this.download('workflow.yaml',ret.data.workflow);
-                        // window.open(Galaxy.root + 'api/workflows/' + ret.data.workflowid + '/download?format=json-download','galaxy_main')
+                        this.download('workflow.yaml',JSON.stringify(ret.data.workflow, null, 2));
                     } else {
-                        alert('Please register and login to use this feature!\n\nMeanwhile we will offer to download your history instead.');
+                        alert('Something unexpected happened!\n\nWe will offer to download your history instead.');
                         window.open(Galaxy.root + 'history/export_archive','galaxy_main');
                     }
                 });
@@ -139,6 +138,38 @@ $(document).ready( () => {
                     this.download('citations.bib',ret.data.bibtex);
                 });
             });
+
+
+			$('#switchtour-config-update').on('click', (e) => {
+                e.stopPropagation();
+				if(adminMode){
+					$.ajax({
+						url: Galaxy.root + 'api/webhooks/switchtour/data',
+						data: {
+							fun: 'update_tours'
+						},
+						async: false,
+						success: function(ret) {
+							$.ajax({
+								url: Galaxy.root + 'api/webhooks/switchtour/data',
+								data: {
+									fun: 'update_tours'
+								},
+								async: false,
+								success: function(ret) {
+									alert('Tours sucessfully updated');
+								},
+								error: function(e) {
+									console.log(e);
+								}
+							});
+						},
+						error: function(e) {
+							console.log(e);
+						}
+					});
+				}
+			});
         },
 
         showMenu: function() {
@@ -228,7 +259,7 @@ $(document).ready( () => {
                             } else {
                                 switchtour.$el.html(switchtour.button({text: 'End'}));
                                 $('#switchtour-submit').hide();
-                                $('#switchtour-text').html(this.text({header: 'Success!', text: 'You completed this tour!<br>Please do not forget to...'}));
+                                $('#switchtour-text').html(this.text({header: 'Success!', text: 'You completed this guide!<br>Please do not forget to...'}));
                             }
                             $('#switchtour-checkbox').html(choices);
                             if (tourcounter > 1) { 
@@ -273,15 +304,18 @@ $(document).ready( () => {
                             $('#switchtour-download').hide();
                             this.showMenu();
                         });
-						
-						if ($('#admin').length) {
-							$("#switchtour-config").css('display','inline');
-							$("#switchtour-testmode").prop('checked','true');
-							$("#switchtour-updatetours").prop('checked','true');
-						}
-                    }
+
+						$.getJSON(Galaxy.root + 'api/webhooks/switchtour/data', {fun: 'get_user'}, (ret) => {
+							if (ret.success && ret.data.isadmin) {
+								adminMode = true;
+								$("#switchtour-config").css('display','inline');
+								$("#switchtour-config-keephist").prop('checked','true');
+								$("#switchtour-config-mouse").prop('checked','true');
+							}
+						});
+					}
                 } else {
-                    alert("Please login first");
+                    alert("Something unexpected happened!");
                     console.error('[ERROR] "' + url + '":\n' + data.error);
                 }
             });
@@ -300,27 +334,14 @@ $(document).ready( () => {
         runSelection: function() {
             var tourid = $("input[name='switchtour-select']").filter(':checked').val();
             if (tourid && tourcounter === 0) {
-				if ($("#switchtour-updatetours")[0].checked === true){
-					$.ajax({
-						url: Galaxy.root + 'api/webhooks/switchtour/data',
-						data: {
-							fun: 'update_tours'
-						},
-						async: false,
-						success: function(ret) {
-						},
-						error: function(e) {
-							console.log(e);
-						}
-					});
-				}
-				if ($("#switchtour-testmode")[0].checked === true){
-					testMode = true;
-				} else {
+				if (!adminMode || (adminMode && $("#switchtour-config-keephist")[0].checked === false)){
 					$.getJSON(Galaxy.root + 'api/webhooks/switchtour/data', {fun: 'new_history'}, () => {
                         // Galaxy.currHistoryPanel.refreshContents(); does not work
                         $('#history-refresh-button').click();
                     });
+				}
+				if (adminMode && $("#switchtour-config-mouse")[0].checked === true){
+					mouseMode = true;
 				}
 				tourprefix = tourid;
                 tourcounter++;
@@ -365,7 +386,8 @@ $(document).ready( () => {
 
     var switchtour = new SwitchtourView();
 	var tour;
-    var testMode = false;
+    var adminMode = false;
+	var mouseMode = false;
 
     var Galaxy = window.bundleEntries.getGalaxyInstance();
 //	for(var k in Galaxy) {
@@ -426,7 +448,7 @@ $(document).ready( () => {
         },
 
         onShown: function() {
-            if(! testMode ){
+            if(! mouseMode ){
                 $('#masthead').css('pointer-events', 'none');
                 $('#columns').css('pointer-events', 'none');
                 $('.modal-content').css('pointer-events', 'none');
@@ -445,13 +467,13 @@ $(document).ready( () => {
                     if(step.textinsert){
                         $("#galaxy_main").contents().find(step.iframeelement).val(step.textinsert).trigger("change");
                     }
-                    _.each(step.unselect, (e) => {
-                        $("#galaxy_main").contents().find(e).prop("selected", false);
-                        $("#galaxy_main").contents().find(e).prop("checked", false);
-                    });
                     _.each(step.select, (e) => {
                         $("#galaxy_main").contents().find(e).prop("selected", true);
                         $("#galaxy_main").contents().find(e).prop("checked", true);
+                    });
+                    _.each(step.unselect, (e) => {
+                        $("#galaxy_main").contents().find(e).prop("selected", false);
+                        $("#galaxy_main").contents().find(e).prop("checked", false);
                     });
                 } else {
                     _.each(step.onloadclick, (e) => {
@@ -460,13 +482,13 @@ $(document).ready( () => {
                     if(step.textinsert){
                         $(step.element).val(step.textinsert).trigger("change");
                     }
-                    _.each(step.unselect, (e) => {
-                        $(e).prop("selected", false);
-                        $(e).prop("checked", false);
-                    });
                     _.each(step.select, (e) => {
                         $(e).prop("selected", true);
                         $(e).prop("checked", true);
+                    });
+                    _.each(step.unselect, (e) => {
+                        $(e).prop("selected", false);
+                        $(e).prop("checked", false);
                     });
                 }
             }
@@ -495,18 +517,18 @@ $(document).ready( () => {
 
         orphan: true,
 
-        //added id
-		template: `<div id="tour-bubble" class="popover" role="tooltip">
-                       <div class="arrow"></div> 
-                       <h3 class="popover-header"></h3> 
-	                   <div class="popover-body"></div> 
-                           <div class="popover-navigation"><div class="btn-group">
-       			               <button class="btn btn-sm btn-secondary" data-role="prev">&laquo; Prev</button>
-                               <button class="btn btn-sm btn-secondary" data-role="next">Next &raquo;</button>
-                           </div>
-                           <button class="btn btn-sm btn-secondary" data-role="end">End tour</button>
-                       </div>
-                   </div>`,
+        //added id - from 19.05 on, template will be overridden to avoid <script> execution and to block non-text html tags
+		// template: `<div id="tour-bubble" class="popover" role="tooltip">
+        //                <div class="arrow"></div> 
+        //                <h3 class="popover-header"></h3> 
+	    //                <div class="popover-body"></div> 
+        //                    <div class="popover-navigation"><div class="btn-group">
+       	// 		               <button class="btn btn-sm btn-secondary" data-role="prev">&laquo; Prev</button>
+        //                        <button class="btn btn-sm btn-secondary" data-role="next">Next &raquo;</button>
+        //                    </div>
+        //                    <button class="btn btn-sm btn-secondary" data-role="end">End tour</button>
+        //                </div>
+        //            </div>`,
 
          onShow: function(tour,i) {
             if(i === null){
@@ -587,7 +609,11 @@ $(document).ready( () => {
     function timeoutLoader(){
         if(! tourEnded){
             currentTimeout = setTimeout(function(){
-                if (confirm('At least one HTML element is not available yet\n\nIf some history jobs are still pending (grey or yellow),\nplease wait a little longer [OK]\nOr return to the previous step by [CANCEL]')) {
+				let message = 'At least one HTML element is not available yet\n\nIf some history jobs are still pending (grey or yellow),\nplease wait a little longer [OK]\nOr return to the previous step by [CANCEL]';
+				if (adminMode){
+					message = message + '\n\n' + JSON.stringify(observeElements);
+				}
+                if (confirm(message)) {
                     $('<div>').attr('type','hidden').appendTo('body').remove(); //trigger observer
                     timeoutLoader();
                 } else {
@@ -595,6 +621,7 @@ $(document).ready( () => {
                     switchtour.removeLoader();
                     observeElements = [];
                     tour.prev();
+
                     //switchtour.abort();
                 }
             }, 10000); //todo kill tour or goto step-1 -> buuuut not if waiting for green job
@@ -605,7 +632,9 @@ $(document).ready( () => {
     var observer = new MutationObserver((mutations, observer) => {
         let ispresent = 0;
         for(let i=observeElements.length-1; i >= 0 ; i--){
-            if($(observeElements[i].element).length === observeElements[i].count || $(observeElements[i].element).length >= observeElements[i].mincount){
+			let found = $(observeElements[i].element).length;
+			observeElements[i].found = found;
+            if(found === observeElements[i].count || $(observeElements[i].element).length >= observeElements[i].mincount){
                 console.log($(observeElements[i].element).length,' times found ',observeElements[i].element);
                 ispresent++;
                 //observeElements.splice(i,1);
