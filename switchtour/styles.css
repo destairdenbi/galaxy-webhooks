@@ -1,3 +1,11 @@
+.popover.tour-tour .popover-body {
+    max-width: 120em;
+}
+
+.popover.tour-tour .popover-body h4 {
+    color: red;
+}
+
 #switchtour-loader {
     z-index: 1051;
     position: fixed;
