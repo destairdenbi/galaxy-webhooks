@@ -80,10 +80,20 @@ for more parameters and further help, consult
 [these instructions](https://github.com/destairdenbi/galaxy-workflow-generator#run-the-container).
 
 
-Once the container is ready, you will be able to modify our de.STAIR webhook client site javascript and backend python script
+Once the container is ready, you will be able to modify our de.STAIR webhook backend python script:
+
 ```
 /absolute/path/to/local/directory/export/galaxy-central/config/plugins/webhooks/switchtour
 ```
+
+You might also modify the client-side javascripts found in the ``src`` directory and compile via *npm*
+
+```
+/absolute/path/to/local/directory/export/galaxy-central/config/plugins/webhooks/switchtour/src
+npm install
+npm run build
+```
+
 Now restart the running Galaxy instance and access it via a webbrowser from the following address ``localhost:8080``.
 ```
 $ docker exec destair supervisorctl restart galaxy:
