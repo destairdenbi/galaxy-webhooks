@@ -22,6 +22,7 @@ class Switchtour(object):
         }
 
     def update_tours(this):
+        from galaxy.managers.users import UserManager
         if UserManager(this.trans.app).is_admin(this.user):
             this.trans.app.tour_registry.load_tours()
         
