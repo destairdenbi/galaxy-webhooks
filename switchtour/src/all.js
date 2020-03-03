@@ -23,17 +23,17 @@ $(document).ready( () => {
         ),
 
         menu: _.template(
-			'<div id="switchtour-menu">' +
-				'<div id="switchtour-config" style="display:none">' +
-					'<h3>Admin configuration</h3>' +
-					'<div align="left">' +
-						'<button id="switchtour-config-update" class="float-right">Update tours DB</button>' +
-						'<input id="switchtour-config-keephist" type="checkbox"> Keep history' +
-						'<br>' +
-						'<input id="switchtour-config-mouse" type="checkbox"> Enable mouse events' +
-					'</div>' +
-					'<br>' +
-				'</div>' +
+            '<div id="switchtour-menu">' +
+                '<div id="switchtour-config" style="display:none">' +
+                    '<h3>Admin configuration</h3>' +
+                    '<div align="left">' +
+                        '<button id="switchtour-config-update" class="float-right">Update tours DB</button>' +
+                        '<input id="switchtour-config-keephist" type="checkbox"> Keep history' +
+                        '<br>' +
+                        '<input id="switchtour-config-mouse" type="checkbox"> Enable mouse events' +
+                    '</div>' +
+                    '<br>' +
+                '</div>' +
                 '<div id="switchtour-text"></div>' +
                 '<br>' +
                 '<div id="switchtour-checkbox" align="left"></div>' +
@@ -142,36 +142,36 @@ $(document).ready( () => {
             });
 
 
-			$('#switchtour-config-update').on('click', (e) => {
+            $('#switchtour-config-update').on('click', (e) => {
                 e.stopPropagation();
-				if(adminMode){
-					$.ajax({
-						url: Galaxy.root + 'api/webhooks/switchtour/data',
-						data: {
-							fun: 'update_tours'
-						},
-						async: false,
-						success: function(ret) {
-							$.ajax({
-								url: Galaxy.root + 'api/webhooks/switchtour/data',
-								data: {
-									fun: 'update_tours'
-								},
-								async: false,
-								success: function(ret) {
-									alert('Tours sucessfully updated');
-								},
-								error: function(e) {
-									console.log(e);
-								}
-							});
-						},
-						error: function(e) {
-							console.log(e);
-						}
-					});
-				}
-			});
+                if(adminMode){
+                    $.ajax({
+                        url: Galaxy.root + 'api/webhooks/switchtour/data',
+                        data: {
+                            fun: 'update_tours'
+                        },
+                        async: false,
+                        success: function(ret) {
+                            $.ajax({
+                                url: Galaxy.root + 'api/webhooks/switchtour/data',
+                                data: {
+                                    fun: 'update_tours'
+                                },
+                                async: false,
+                                success: function(ret) {
+                                    alert('Tours sucessfully updated');
+                                },
+                                error: function(e) {
+                                    console.log(e);
+                                }
+                            });
+                        },
+                        error: function(e) {
+                            console.log(e);
+                        }
+                    });
+                }
+            });
         },
 
         showMenu: function() {
@@ -267,7 +267,7 @@ $(document).ready( () => {
                             if (tourcounter > 1) { 
                                 $('#switchtour-download').show();
                             }
-							$("#switchtour-config").css('display','none');
+                            $("#switchtour-config").css('display','none');
                             this.showMenu();
                         });
                     } else {
@@ -285,7 +285,7 @@ $(document).ready( () => {
                                             url = Galaxy.root + 'static/'+ tours[i].id + '.html';
                                         },
                                         error: function() {
-											$.ajax({
+                                            $.ajax({
                                                 url: Galaxy.root + 'static/test.html',
                                                 async: false,
                                                 success: function() {
@@ -307,15 +307,15 @@ $(document).ready( () => {
                             this.showMenu();
                         });
 
-						$.getJSON(Galaxy.root + 'api/webhooks/switchtour/data', {fun: 'get_user'}, (ret) => {
-							if (ret.success && ret.data.isadmin) {
-								adminMode = true;
-								$("#switchtour-config").css('display','inline');
-								$("#switchtour-config-keephist").prop('checked','true');
-								$("#switchtour-config-mouse").prop('checked','true');
-							}
-						});
-					}
+                        $.getJSON(Galaxy.root + 'api/webhooks/switchtour/data', {fun: 'get_user'}, (ret) => {
+                            if (ret.success && ret.data.isadmin) {
+                                adminMode = true;
+                                $("#switchtour-config").css('display','inline');
+                                $("#switchtour-config-keephist").prop('checked','true');
+                                $("#switchtour-config-mouse").prop('checked','true');
+                            }
+                        });
+                    }
                 } else {
                     alert("Something unexpected happened!");
                     console.error('[ERROR] "' + url + '":\n' + data.error);
@@ -336,16 +336,16 @@ $(document).ready( () => {
         runSelection: function() {
             var tourid = $("input[name='switchtour-select']").filter(':checked').val();
             if (tourid && tourcounter === 0) {
-				if (!adminMode || (adminMode && $("#switchtour-config-keephist")[0].checked === false)){
-					$.getJSON(Galaxy.root + 'api/webhooks/switchtour/data', {fun: 'new_history'}, () => {
+                if (!adminMode || (adminMode && $("#switchtour-config-keephist")[0].checked === false)){
+                    $.getJSON(Galaxy.root + 'api/webhooks/switchtour/data', {fun: 'new_history'}, () => {
                         // Galaxy.currHistoryPanel.refreshContents(); does not work
                         $('#history-refresh-button').click();
                     });
-				}
-				if (adminMode && $("#switchtour-config-mouse")[0].checked === true){
-					mouseMode = true;
-				}
-				tourprefix = tourid;
+                }
+                if (adminMode && $("#switchtour-config-mouse")[0].checked === true){
+                    mouseMode = true;
+                }
+                tourprefix = tourid;
                 tourcounter++;
                 $("input[name='switchtour-select']").prop('checked', false);
                 this.invoke();
@@ -354,7 +354,6 @@ $(document).ready( () => {
                 this.removeMenu();
 
                 $.getJSON( Galaxy.root + 'api/tours/' + tourid, (data) => {
-                    console.log(data);
                     //sanity check and alias definition
                     let stepIdx = 0;
                     for (const step of data.steps) {
@@ -388,16 +387,15 @@ $(document).ready( () => {
     });
 
     var switchtour = new SwitchtourView();
-	var tour;
+    var tour;
     var adminMode = false;
-	var mouseMode = false;
+    var mouseMode = false;
 
     var Galaxy = window.bundleEntries.getGalaxyInstance();
-    console.log("TESTING", Galaxy);
-//	for(var k in Galaxy) {
-//		v = Galaxy[k];
-//		console.log(k,v);
-//	}
+//  for(var k in Galaxy) {
+//      v = Galaxy[k];
+//      console.log(k,v);
+//  }
 //  Galaxy.currHistoryPanel.refreshContents(); switchToHistory() createNewHistory()   
 
     var tourcounter = 0;
@@ -419,12 +417,12 @@ $(document).ready( () => {
                 if(step.iframeelement){
                     _.each(step.onnextclick, (e) => {
                         console.log('tofind' ,e);
-                        $("#galaxy_main").contents().find(e)[0].click();
+                        $("#galaxy_main").contents().find(e)[0].mousedown().click().mouseup();
                     });
                 } else {
                     _.each(step.onnextclick, (e) => {
                         //document.getElementsByClassName(e.replace(/\./g, " "))[0].click();
-                        $(e)[0].click();
+                        $(e)[0].mousedown().click().mouseup();
                     });
                 }
             }
@@ -440,12 +438,12 @@ $(document).ready( () => {
             if(step.onprevclick) {
                 if(step.iframeelement){
                     _.each(step.onprevclick, (e) => {
-                        $("#galaxy_main").contents().find(e)[0].click();
+                        $("#galaxy_main").contents().find(e)[0].mousedown().click().mouseup();
                     });
                 } else {
                     _.each(step.onnextclick, (e) => {
                         //document.getElementsByClassName(e.replace(/\./g, " "))[0].click();
-                        $(e)[0].click();
+                        $(e)[0].mousedown().click().mouseup();
                     });
                 }
             }
@@ -466,33 +464,60 @@ $(document).ready( () => {
             if (step.onloadclick || step.textinsert || step.select || step.unselect){
                 if(step.iframeelement){
                     _.each(step.onloadclick, (e) => {
-                        $("#galaxy_main").contents().find(e)[0].click();
+                        $("#galaxy_main").contents().find(e)[0].mousedown().click().mouseup();
                     });
                     if(step.textinsert){
-                        $("#galaxy_main").contents().find(step.iframeelement).val(step.textinsert).trigger("change");
+                         // vue.js does not recognize jquery triggers, thus needs vanilla js
+                        let e = $("#galaxy_main").contents().find(step.iframeelement);
+                        e.value = step.textinsert;
+                        e.dispatchEvent(new Event("change",{bubbles:true}));
+                        e.dispatchEvent(new Event("input",{bubbles:true}));
                     }
                     _.each(step.select, (e) => {
                         $("#galaxy_main").contents().find(e).prop("selected", true);
                         $("#galaxy_main").contents().find(e).prop("checked", true);
+                        let ep = $("#galaxy_main").contents().find(e).parent()[0];
+                        if(ep.nodeName === "SELECT"){
+                            ep.dispatchEvent(new Event("change",{bubbles:true}));
+                            ep.dispatchEvent(new Event("input",{bubbles:true}));
+                        }
                     });
                     _.each(step.unselect, (e) => {
                         $("#galaxy_main").contents().find(e).prop("selected", false);
                         $("#galaxy_main").contents().find(e).prop("checked", false);
+                        let ep = $("#galaxy_main").contents().find(e).parent()[0];
+                        if(ep.nodeName === "SELECT"){
+                            ep.dispatchEvent(new Event("change",{bubbles:true}));
+                            ep.dispatchEvent(new Event("input",{bubbles:true}));
+                        }
                     });
                 } else {
                     _.each(step.onloadclick, (e) => {
-                        $(e)[0].click();
+                        $(e)[0].mousedown().click().mouseup();
                     });
                     if(step.textinsert){
-                        $(step.element).val(step.textinsert).trigger("change");
+                        // vue.js does not recognize jquery triggers, thus needs vanilla js
+                        $(step.element)[0].value = step.textinsert;
+                        $(step.element)[0].dispatchEvent(new Event("change",{bubbles:true}))
+                        $(step.element)[0].dispatchEvent(new Event("input",{bubbles:true}))
                     }
                     _.each(step.select, (e) => {
                         $(e).prop("selected", true);
                         $(e).prop("checked", true);
+                        let ep = $(e).parent()[0];
+                        if(ep.nodeName === "SELECT"){
+                            ep.dispatchEvent(new Event("change",{bubbles:true}));
+                            ep.dispatchEvent(new Event("input",{bubbles:true}));
+                        }
                     });
                     _.each(step.unselect, (e) => {
                         $(e).prop("selected", false);
                         $(e).prop("checked", false);
+                        let ep = $(e).parent()[0];
+                        if(ep.nodeName === "SELECT"){
+                            ep.dispatchEvent(new Event("change",{bubbles:true}));
+                            ep.dispatchEvent(new Event("input",{bubbles:true}));
+                        }
                     });
                 }
             }
@@ -522,12 +547,12 @@ $(document).ready( () => {
         orphan: true,
 
         //added id - from 19.05 on, template will be overridden to avoid <script> execution and to block non-text html tags
-		// template: `<div id="tour-bubble" class="popover" role="tooltip">
+        // template: `<div id="tour-bubble" class="popover" role="tooltip">
         //                <div class="arrow"></div> 
         //                <h3 class="popover-header"></h3> 
-	    //                <div class="popover-body"></div> 
+        //                <div class="popover-body"></div> 
         //                    <div class="popover-navigation"><div class="btn-group">
-       	// 		               <button class="btn btn-sm btn-secondary" data-role="prev">&laquo; Prev</button>
+        //                     <button class="btn btn-sm btn-secondary" data-role="prev">&laquo; Prev</button>
         //                        <button class="btn btn-sm btn-secondary" data-role="next">Next &raquo;</button>
         //                    </div>
         //                    <button class="btn btn-sm btn-secondary" data-role="end">End tour</button>
@@ -538,7 +563,7 @@ $(document).ready( () => {
             if(i === null){
                 i = 0;
             }
-			let step = tour.getStep(i);
+            let step = tour.getStep(i);
             if (typeof step !== 'undefined') {
                 if(step.iframeelement){
                     let rect1 = $('.center-container')[0].getBoundingClientRect();
@@ -606,17 +631,17 @@ $(document).ready( () => {
                     }
                 }
             }
-		}
+        }
     };
 
     var currentTimeout;
     function timeoutLoader(){
         if(! tourEnded){
             currentTimeout = setTimeout(function(){
-				let message = 'At least one HTML element is not available yet\n\nIf some history jobs are still pending (grey or yellow),\nplease wait a little longer [OK]\nOr return to the previous step by [CANCEL]';
-				if (adminMode){
-					message = message + '\n\n' + JSON.stringify(observeElements);
-				}
+                let message = 'At least one HTML element is not available yet\n\nIf some history jobs are still pending (grey or yellow),\nplease wait a little longer [OK]\nOr return to the previous step by [CANCEL]';
+                if (adminMode){
+                    message = message + '\n\n' + JSON.stringify(observeElements);
+                }
                 if (confirm(message)) {
                     $('<div>').attr('type','hidden').appendTo('body').remove(); //trigger observer
                     timeoutLoader();
@@ -638,8 +663,8 @@ $(document).ready( () => {
     var observer = new MutationObserver((mutations, observer) => {
         let ispresent = 0;
         for(let i=observeElements.length-1; i >= 0 ; i--){
-			let found = $(observeElements[i].element).length;
-			observeElements[i].found = found;
+            let found = $(observeElements[i].element).length;
+            observeElements[i].found = found;
             if(found === observeElements[i].count || $(observeElements[i].element).length >= observeElements[i].mincount){
                 console.log($(observeElements[i].element).length,' times found ',observeElements[i].element);
                 ispresent++;
