@@ -1,3 +1,95 @@
+/******/ (function(modules) { // webpackBootstrap
+/******/ 	// The module cache
+/******/ 	var installedModules = {};
+/******/
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/
+/******/ 		// Check if module is in cache
+/******/ 		if(installedModules[moduleId]) {
+/******/ 			return installedModules[moduleId].exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = installedModules[moduleId] = {
+/******/ 			i: moduleId,
+/******/ 			l: false,
+/******/ 			exports: {}
+/******/ 		};
+/******/
+/******/ 		// Execute the module function
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/
+/******/ 		// Flag the module as loaded
+/******/ 		module.l = true;
+/******/
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/
+/******/
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = modules;
+/******/
+/******/ 	// expose the module cache
+/******/ 	__webpack_require__.c = installedModules;
+/******/
+/******/ 	// define getter function for harmony exports
+/******/ 	__webpack_require__.d = function(exports, name, getter) {
+/******/ 		if(!__webpack_require__.o(exports, name)) {
+/******/ 			Object.defineProperty(exports, name, { enumerable: true, get: getter });
+/******/ 		}
+/******/ 	};
+/******/
+/******/ 	// define __esModule on exports
+/******/ 	__webpack_require__.r = function(exports) {
+/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 		}
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
+/******/ 	// create a fake namespace object
+/******/ 	// mode & 1: value is a module id, require it
+/******/ 	// mode & 2: merge all properties of value into the ns
+/******/ 	// mode & 4: return value when already ns object
+/******/ 	// mode & 8|1: behave like require
+/******/ 	__webpack_require__.t = function(value, mode) {
+/******/ 		if(mode & 1) value = __webpack_require__(value);
+/******/ 		if(mode & 8) return value;
+/******/ 		if((mode & 4) && typeof value === 'object' && value && value.__esModule) return value;
+/******/ 		var ns = Object.create(null);
+/******/ 		__webpack_require__.r(ns);
+/******/ 		Object.defineProperty(ns, 'default', { enumerable: true, value: value });
+/******/ 		if(mode & 2 && typeof value != 'string') for(var key in value) __webpack_require__.d(ns, key, function(key) { return value[key]; }.bind(null, key));
+/******/ 		return ns;
+/******/ 	};
+/******/
+/******/ 	// getDefaultExport function for compatibility with non-harmony modules
+/******/ 	__webpack_require__.n = function(module) {
+/******/ 		var getter = module && module.__esModule ?
+/******/ 			function getDefault() { return module['default']; } :
+/******/ 			function getModuleExports() { return module; };
+/******/ 		__webpack_require__.d(getter, 'a', getter);
+/******/ 		return getter;
+/******/ 	};
+/******/
+/******/ 	// Object.prototype.hasOwnProperty.call
+/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
+/******/
+/******/ 	// __webpack_public_path__
+/******/ 	__webpack_require__.p = "";
+/******/
+/******/
+/******/ 	// Load entry module and return exports
+/******/ 	return __webpack_require__(__webpack_require__.s = 1);
+/******/ })
+/************************************************************************/
+/******/ ([
+/* 0 */
+/***/ (function(module, exports) {
+
+function run(){
+
 $(document).ready( () => {
 
     var SwitchtourView = Backbone.View.extend({
@@ -195,6 +287,8 @@ $(document).ready( () => {
             $('.modal-content').css('filter', 'blur(3px)');
             $('.modal-content').css('pointer-events', 'none');
             $('.modal').css('pointer-events', 'none');
+	    $('.popover').css('filter', 'blur(3px)');
+	    $('.popover').css('pointer-events', 'none');
             $('#switchtour-loader').show();
         },
 
@@ -205,6 +299,8 @@ $(document).ready( () => {
             $('.modal-content').css('filter', 'none');
             $('.modal-content').css('pointer-events', 'auto');
             $('.modal').css('pointer-events', 'auto');
+   	    $('.popover').css('filter', 'none');
+	    $('.popover').css('pointer-events', 'auto');
             $('#switchtour-loader').hide();
         },
 
@@ -415,12 +511,19 @@ $(document).ready( () => {
                 if(step.iframeelement){
                     _.each(step.onnextclick, (e) => {
                         console.log('tofind' ,e);
-                        $("#galaxy_main").contents().find(e)[0].mousedown().click().mouseup();
+			const el = $("#galaxy_main").contents().find(e)[0];
+			el.mousedown().mouseup();
+			if($("#galaxy_main").contents().find(e).length > 0){
+                            el[0].click();
+			}
                     });
                 } else {
                     _.each(step.onnextclick, (e) => {
-                        //document.getElementsByClassName(e.replace(/\./g, " "))[0].click();
-                        $(e)[0].mousedown().click().mouseup();
+			const el = $(e);
+                        el.mousedown().mouseup();
+			if($(e).length > 0){
+			    el[0].click();
+			}
                     });
                 }
             }
@@ -436,12 +539,20 @@ $(document).ready( () => {
             if(step.onprevclick) {
                 if(step.iframeelement){
                     _.each(step.onprevclick, (e) => {
-                        $("#galaxy_main").contents().find(e)[0].mousedown().click().mouseup();
+			const el = $("#galaxy_main").contents().find(e)[0];
+                        el.mousedown().mouseup();
+			if($("#galaxy_main").contents().find(e).length > 0){
+                            el[0].click();
+			}
                     });
                 } else {
                     _.each(step.onnextclick, (e) => {
                         //document.getElementsByClassName(e.replace(/\./g, " "))[0].click();
-                        $(e)[0].mousedown().click().mouseup();
+			const el = $(e);
+                        el.mousedown().mouseup();
+			if($(e).length > 0){
+			    el[0].click();
+			}
                     });
                 }
             }
@@ -460,50 +571,77 @@ $(document).ready( () => {
                 $(step.element)[0].scrollIntoView(false);
             }
             if (step.onloadclick || step.textinsert || step.select || step.unselect){
+
+                needDelay = false;
+
                 if(step.iframeelement){
-                    _.each(step.onloadclick, (e) => {
-                        $("#galaxy_main").contents().find(e)[0].mousedown().click().mouseup();
-                    });
+
                     if(step.textinsert){
+                        needDelay = true;
                          // vue.js does not recognize jquery triggers, thus needs vanilla js
-                        let e = $("#galaxy_main").contents().find(step.iframeelement);
+                        let e = $("#galaxy_main").contents().find(step.iframeelement)[0];
                         e.value = step.textinsert;
                         e.dispatchEvent(new Event("change",{bubbles:true}));
                         e.dispatchEvent(new Event("input",{bubbles:true}));
                     }
                     _.each(step.select, (e) => {
-                        $("#galaxy_main").contents().find(e).prop("selected", true);
-                        $("#galaxy_main").contents().find(e).prop("checked", true);
-                        let ep = $("#galaxy_main").contents().find(e).parent()[0];
+                        $("#galaxy_main").contents().find(e)[0].prop("selected", true);
+                        $("#galaxy_main").contents().find(e)[0].prop("checked", true);
+                        let ep = $("#galaxy_main").contents().find(e)[0].parent()[0];
                         if(ep.nodeName === "SELECT"){
+                            needDelay = true;
                             ep.dispatchEvent(new Event("change",{bubbles:true}));
                             ep.dispatchEvent(new Event("input",{bubbles:true}));
                         }
                     });
                     _.each(step.unselect, (e) => {
-                        $("#galaxy_main").contents().find(e).prop("selected", false);
-                        $("#galaxy_main").contents().find(e).prop("checked", false);
-                        let ep = $("#galaxy_main").contents().find(e).parent()[0];
+                        $("#galaxy_main").contents().find(e)[0].prop("selected", false);
+                        $("#galaxy_main").contents().find(e)[0].prop("checked", false);
+                        let ep = $("#galaxy_main").contents().find(e)[0].parent()[0];
                         if(ep.nodeName === "SELECT"){
+                            needDelay = true;
                             ep.dispatchEvent(new Event("change",{bubbles:true}));
                             ep.dispatchEvent(new Event("input",{bubbles:true}));
                         }
                     });
+
+                    if(step.onloadclick){
+                        if(needDelay){
+			    switchtour.showLoader();
+                            setTimeout(function(){
+                                _.each(step.onloadclick, (e) => {
+				    const el = $("#galaxy_main").contents().find(e)[0];
+                                    el.mousedown().mouseup();
+				    if($("#galaxy_main").contents().find(e).length > 0){
+					el[0].click();
+				    }
+                                });
+                                switchtour.removeLoader();
+                            },500);
+                        } else {
+                            _.each(step.onloadclick, (e) => {
+				const el = $("#galaxy_main").contents().find(e)[0];
+                                el.mousedown().mouseup();
+				if($("#galaxy_main").contents().find(e).length > 0){
+				    el[0].click();
+				}
+                            });
+                        }
+                    }
                 } else {
-                    _.each(step.onloadclick, (e) => {
-                        $(e)[0].mousedown().click().mouseup();
-                    });
                     if(step.textinsert){
+                        needDelay = true;
                         // vue.js does not recognize jquery triggers, thus needs vanilla js
                         $(step.element)[0].value = step.textinsert;
-                        $(step.element)[0].dispatchEvent(new Event("change",{bubbles:true}))
-                        $(step.element)[0].dispatchEvent(new Event("input",{bubbles:true}))
+                        $(step.element)[0].dispatchEvent(new Event("change",{bubbles:true}));
+                        $(step.element)[0].dispatchEvent(new Event("input",{bubbles:true}));
                     }
                     _.each(step.select, (e) => {
                         $(e).prop("selected", true);
                         $(e).prop("checked", true);
                         let ep = $(e).parent()[0];
                         if(ep.nodeName === "SELECT"){
+                            needDelay = true;
                             ep.dispatchEvent(new Event("change",{bubbles:true}));
                             ep.dispatchEvent(new Event("input",{bubbles:true}));
                         }
@@ -513,10 +651,35 @@ $(document).ready( () => {
                         $(e).prop("checked", false);
                         let ep = $(e).parent()[0];
                         if(ep.nodeName === "SELECT"){
+                            needDelay = true;
                             ep.dispatchEvent(new Event("change",{bubbles:true}));
                             ep.dispatchEvent(new Event("input",{bubbles:true}));
                         }
                     });
+
+                    if(step.onloadclick){
+                        if(needDelay){
+			    switchtour.showLoader();
+                            setTimeout(function(){
+                                _.each(step.onloadclick, (e) => {
+				    const el = $(e);
+                                    el.mousedown().mouseup();
+				    if($(e).length > 0){	
+					el[0].click();
+				    }
+                                });
+				switchtour.removeLoader();
+                            },500);
+                        } else {
+                            _.each(step.onloadclick, (e) => {
+				const el = $(e);
+                                el.mousedown().mouseup();
+				if($(e).length > 0){	
+				    el[0].click();
+				}
+                            });
+                        }
+                    }
                 }
             }
             if(step.element && step.pointer){
@@ -528,7 +691,7 @@ $(document).ready( () => {
             $('#masthead').css('pointer-events', 'auto');
             $('#columns').css('pointer-events', 'auto');
             $('.modal').css('pointer-events', 'auto');
-            $('.modal-content').css('pointer-events', 'auto');            
+            $('.modal-content').css('pointer-events', 'auto');
             tourEnded = true;
             sessionStorage.removeItem('activeGalaxyTour');
             var step = tour.getStep(tour.getCurrentStep()+1);
@@ -651,7 +814,7 @@ $(document).ready( () => {
 
                     //switchtour.abort();
                 }
-            }, 10000); //todo kill tour or goto step-1 -> buuuut not if waiting for green job
+            }, 10000);
         }
     }
 
@@ -679,3 +842,30 @@ $(document).ready( () => {
     });
 });
 
+}
+
+
+/***/ }),
+/* 1 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _all__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
+/* harmony import */ var _all__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_all__WEBPACK_IMPORTED_MODULE_0__);
+
+
+function main(){
+  _all__WEBPACK_IMPORTED_MODULE_0__["run"]();
+}
+
+try {
+  main();
+} catch (error) {
+  console.log(error);
+}
+
+
+
+/***/ })
+/******/ ]);

@@ -15,7 +15,7 @@ class Switchtour(object):
 
     def get_user(this):
         from galaxy.managers.users import UserManager
-        
+        print("-------------------------")
         return {
             'name': this.user.username,
             'isadmin': UserManager(this.trans.app).is_admin(this.user)
