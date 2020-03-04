@@ -1,5 +1,5 @@
 .popover.tour-tour .popover-body {
-    max-width: 120em;
+    max-width: 100em;
 }
 
 .popover.tour-tour .popover-body h4 {
@@ -7,7 +7,7 @@
 }
 
 #switchtour-loader {
-    z-index: 1051;
+    z-index: 1101;
     position: fixed;
     top: 30%;
     left: 50%;

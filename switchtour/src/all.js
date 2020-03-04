@@ -1,4 +1,4 @@
-export function run() {
+function run(){
 
 $(document).ready( () => {
 
@@ -197,6 +197,8 @@ $(document).ready( () => {
             $('.modal-content').css('filter', 'blur(3px)');
             $('.modal-content').css('pointer-events', 'none');
             $('.modal').css('pointer-events', 'none');
+	    $('.popover').css('filter', 'blur(3px)');
+	    $('.popover').css('pointer-events', 'none');
             $('#switchtour-loader').show();
         },
 
@@ -207,6 +209,8 @@ $(document).ready( () => {
             $('.modal-content').css('filter', 'none');
             $('.modal-content').css('pointer-events', 'auto');
             $('.modal').css('pointer-events', 'auto');
+   	    $('.popover').css('filter', 'none');
+	    $('.popover').css('pointer-events', 'auto');
             $('#switchtour-loader').hide();
         },
 
@@ -417,12 +421,19 @@ $(document).ready( () => {
                 if(step.iframeelement){
                     _.each(step.onnextclick, (e) => {
                         console.log('tofind' ,e);
-                        $("#galaxy_main").contents().find(e)[0].mousedown().click().mouseup();
+			const el = $("#galaxy_main").contents().find(e)[0];
+			el.mousedown().mouseup();
+			if($("#galaxy_main").contents().find(e).length > 0){
+                            el[0].click();
+			}
                     });
                 } else {
                     _.each(step.onnextclick, (e) => {
-                        //document.getElementsByClassName(e.replace(/\./g, " "))[0].click();
-                        $(e)[0].mousedown().click().mouseup();
+			const el = $(e);
+                        el.mousedown().mouseup();
+			if($(e).length > 0){
+			    el[0].click();
+			}
                     });
                 }
             }
@@ -438,12 +449,20 @@ $(document).ready( () => {
             if(step.onprevclick) {
                 if(step.iframeelement){
                     _.each(step.onprevclick, (e) => {
-                        $("#galaxy_main").contents().find(e)[0].mousedown().click().mouseup();
+			const el = $("#galaxy_main").contents().find(e)[0];
+                        el.mousedown().mouseup();
+			if($("#galaxy_main").contents().find(e).length > 0){
+                            el[0].click();
+			}
                     });
                 } else {
                     _.each(step.onnextclick, (e) => {
                         //document.getElementsByClassName(e.replace(/\./g, " "))[0].click();
-                        $(e)[0].mousedown().click().mouseup();
+			const el = $(e);
+                        el.mousedown().mouseup();
+			if($(e).length > 0){
+			    el[0].click();
+			}
                     });
                 }
             }
@@ -462,50 +481,77 @@ $(document).ready( () => {
                 $(step.element)[0].scrollIntoView(false);
             }
             if (step.onloadclick || step.textinsert || step.select || step.unselect){
+
+                needDelay = false;
+
                 if(step.iframeelement){
-                    _.each(step.onloadclick, (e) => {
-                        $("#galaxy_main").contents().find(e)[0].mousedown().click().mouseup();
-                    });
+
                     if(step.textinsert){
+                        needDelay = true;
                          // vue.js does not recognize jquery triggers, thus needs vanilla js
-                        let e = $("#galaxy_main").contents().find(step.iframeelement);
+                        let e = $("#galaxy_main").contents().find(step.iframeelement)[0];
                         e.value = step.textinsert;
                         e.dispatchEvent(new Event("change",{bubbles:true}));
                         e.dispatchEvent(new Event("input",{bubbles:true}));
                     }
                     _.each(step.select, (e) => {
-                        $("#galaxy_main").contents().find(e).prop("selected", true);
-                        $("#galaxy_main").contents().find(e).prop("checked", true);
-                        let ep = $("#galaxy_main").contents().find(e).parent()[0];
+                        $("#galaxy_main").contents().find(e)[0].prop("selected", true);
+                        $("#galaxy_main").contents().find(e)[0].prop("checked", true);
+                        let ep = $("#galaxy_main").contents().find(e)[0].parent()[0];
                         if(ep.nodeName === "SELECT"){
+                            needDelay = true;
                             ep.dispatchEvent(new Event("change",{bubbles:true}));
                             ep.dispatchEvent(new Event("input",{bubbles:true}));
                         }
                     });
                     _.each(step.unselect, (e) => {
-                        $("#galaxy_main").contents().find(e).prop("selected", false);
-                        $("#galaxy_main").contents().find(e).prop("checked", false);
-                        let ep = $("#galaxy_main").contents().find(e).parent()[0];
+                        $("#galaxy_main").contents().find(e)[0].prop("selected", false);
+                        $("#galaxy_main").contents().find(e)[0].prop("checked", false);
+                        let ep = $("#galaxy_main").contents().find(e)[0].parent()[0];
                         if(ep.nodeName === "SELECT"){
+                            needDelay = true;
                             ep.dispatchEvent(new Event("change",{bubbles:true}));
                             ep.dispatchEvent(new Event("input",{bubbles:true}));
                         }
                     });
+
+                    if(step.onloadclick){
+                        if(needDelay){
+			    switchtour.showLoader();
+                            setTimeout(function(){
+                                _.each(step.onloadclick, (e) => {
+				    const el = $("#galaxy_main").contents().find(e)[0];
+                                    el.mousedown().mouseup();
+				    if($("#galaxy_main").contents().find(e).length > 0){
+					el[0].click();
+				    }
+                                });
+                                switchtour.removeLoader();
+                            },500);
+                        } else {
+                            _.each(step.onloadclick, (e) => {
+				const el = $("#galaxy_main").contents().find(e)[0];
+                                el.mousedown().mouseup();
+				if($("#galaxy_main").contents().find(e).length > 0){
+				    el[0].click();
+				}
+                            });
+                        }
+                    }
                 } else {
-                    _.each(step.onloadclick, (e) => {
-                        $(e)[0].mousedown().click().mouseup();
-                    });
                     if(step.textinsert){
+                        needDelay = true;
                         // vue.js does not recognize jquery triggers, thus needs vanilla js
                         $(step.element)[0].value = step.textinsert;
-                        $(step.element)[0].dispatchEvent(new Event("change",{bubbles:true}))
-                        $(step.element)[0].dispatchEvent(new Event("input",{bubbles:true}))
+                        $(step.element)[0].dispatchEvent(new Event("change",{bubbles:true}));
+                        $(step.element)[0].dispatchEvent(new Event("input",{bubbles:true}));
                     }
                     _.each(step.select, (e) => {
                         $(e).prop("selected", true);
                         $(e).prop("checked", true);
                         let ep = $(e).parent()[0];
                         if(ep.nodeName === "SELECT"){
+                            needDelay = true;
                             ep.dispatchEvent(new Event("change",{bubbles:true}));
                             ep.dispatchEvent(new Event("input",{bubbles:true}));
                         }
@@ -515,10 +561,35 @@ $(document).ready( () => {
                         $(e).prop("checked", false);
                         let ep = $(e).parent()[0];
                         if(ep.nodeName === "SELECT"){
+                            needDelay = true;
                             ep.dispatchEvent(new Event("change",{bubbles:true}));
                             ep.dispatchEvent(new Event("input",{bubbles:true}));
                         }
                     });
+
+                    if(step.onloadclick){
+                        if(needDelay){
+			    switchtour.showLoader();
+                            setTimeout(function(){
+                                _.each(step.onloadclick, (e) => {
+				    const el = $(e);
+                                    el.mousedown().mouseup();
+				    if($(e).length > 0){	
+					el[0].click();
+				    }
+                                });
+				switchtour.removeLoader();
+                            },500);
+                        } else {
+                            _.each(step.onloadclick, (e) => {
+				const el = $(e);
+                                el.mousedown().mouseup();
+				if($(e).length > 0){	
+				    el[0].click();
+				}
+                            });
+                        }
+                    }
                 }
             }
             if(step.element && step.pointer){
@@ -530,7 +601,7 @@ $(document).ready( () => {
             $('#masthead').css('pointer-events', 'auto');
             $('#columns').css('pointer-events', 'auto');
             $('.modal').css('pointer-events', 'auto');
-            $('.modal-content').css('pointer-events', 'auto');            
+            $('.modal-content').css('pointer-events', 'auto');
             tourEnded = true;
             sessionStorage.removeItem('activeGalaxyTour');
             var step = tour.getStep(tour.getCurrentStep()+1);
@@ -653,7 +724,7 @@ $(document).ready( () => {
 
                     //switchtour.abort();
                 }
-            }, 10000); //todo kill tour or goto step-1 -> buuuut not if waiting for green job
+            }, 10000);
         }
     }
 

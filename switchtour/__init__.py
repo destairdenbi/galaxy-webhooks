@@ -15,13 +15,14 @@ class Switchtour(object):
 
     def get_user(this):
         from galaxy.managers.users import UserManager
-        
+        print("-------------------------")
         return {
             'name': this.user.username,
             'isadmin': UserManager(this.trans.app).is_admin(this.user)
         }
 
     def update_tours(this):
+        from galaxy.managers.users import UserManager
         if UserManager(this.trans.app).is_admin(this.user):
             this.trans.app.tour_registry.load_tours()
         
