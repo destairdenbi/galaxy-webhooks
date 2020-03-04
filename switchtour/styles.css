@@ -1,9 +1,24 @@
+.popover.tour-tour {
+    border: 3px solid #ed1d99;
+    margin: 0px;
+}
+
+.popover.tour-tour button {
+    color: #fff;
+    background-color: #4fabe4;
+}
+
+.popover.tour-tour .popover-header {
+    color: #fff;
+    background-color: #ed1d99;
+}
+
 .popover.tour-tour .popover-body {
     max-width: 100em;
 }
 
 .popover.tour-tour .popover-body h4 {
-    color: red;
+    color: #ed1d99;
 }
 
 #switchtour-loader {
@@ -45,7 +60,7 @@
     left: 50%;
     -webkit-transform: translate(-50%, -50%);
     transform: translate(-50%, -50%);
-    border: 1px solid #2c3143;
+    border: 3px solid #ed1d99;
     border-radius: 10px;
     padding: 10px;
     text-align: center;
@@ -60,7 +75,7 @@
     position: absolute;
     display: none;
     background-color: #fff;
-    border: 1px solid #2c3143;
+    border: 3px solid #4fabe4;
     border-radius: 0px 10px 10px 10px;
     top: 50%;
     left: 101%;

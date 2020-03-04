@@ -1,95 +1,3 @@
-/******/ (function(modules) { // webpackBootstrap
-/******/ 	// The module cache
-/******/ 	var installedModules = {};
-/******/
-/******/ 	// The require function
-/******/ 	function __webpack_require__(moduleId) {
-/******/
-/******/ 		// Check if module is in cache
-/******/ 		if(installedModules[moduleId]) {
-/******/ 			return installedModules[moduleId].exports;
-/******/ 		}
-/******/ 		// Create a new module (and put it into the cache)
-/******/ 		var module = installedModules[moduleId] = {
-/******/ 			i: moduleId,
-/******/ 			l: false,
-/******/ 			exports: {}
-/******/ 		};
-/******/
-/******/ 		// Execute the module function
-/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
-/******/
-/******/ 		// Flag the module as loaded
-/******/ 		module.l = true;
-/******/
-/******/ 		// Return the exports of the module
-/******/ 		return module.exports;
-/******/ 	}
-/******/
-/******/
-/******/ 	// expose the modules object (__webpack_modules__)
-/******/ 	__webpack_require__.m = modules;
-/******/
-/******/ 	// expose the module cache
-/******/ 	__webpack_require__.c = installedModules;
-/******/
-/******/ 	// define getter function for harmony exports
-/******/ 	__webpack_require__.d = function(exports, name, getter) {
-/******/ 		if(!__webpack_require__.o(exports, name)) {
-/******/ 			Object.defineProperty(exports, name, { enumerable: true, get: getter });
-/******/ 		}
-/******/ 	};
-/******/
-/******/ 	// define __esModule on exports
-/******/ 	__webpack_require__.r = function(exports) {
-/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 		}
-/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 	};
-/******/
-/******/ 	// create a fake namespace object
-/******/ 	// mode & 1: value is a module id, require it
-/******/ 	// mode & 2: merge all properties of value into the ns
-/******/ 	// mode & 4: return value when already ns object
-/******/ 	// mode & 8|1: behave like require
-/******/ 	__webpack_require__.t = function(value, mode) {
-/******/ 		if(mode & 1) value = __webpack_require__(value);
-/******/ 		if(mode & 8) return value;
-/******/ 		if((mode & 4) && typeof value === 'object' && value && value.__esModule) return value;
-/******/ 		var ns = Object.create(null);
-/******/ 		__webpack_require__.r(ns);
-/******/ 		Object.defineProperty(ns, 'default', { enumerable: true, value: value });
-/******/ 		if(mode & 2 && typeof value != 'string') for(var key in value) __webpack_require__.d(ns, key, function(key) { return value[key]; }.bind(null, key));
-/******/ 		return ns;
-/******/ 	};
-/******/
-/******/ 	// getDefaultExport function for compatibility with non-harmony modules
-/******/ 	__webpack_require__.n = function(module) {
-/******/ 		var getter = module && module.__esModule ?
-/******/ 			function getDefault() { return module['default']; } :
-/******/ 			function getModuleExports() { return module; };
-/******/ 		__webpack_require__.d(getter, 'a', getter);
-/******/ 		return getter;
-/******/ 	};
-/******/
-/******/ 	// Object.prototype.hasOwnProperty.call
-/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
-/******/
-/******/ 	// __webpack_public_path__
-/******/ 	__webpack_require__.p = "";
-/******/
-/******/
-/******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 1);
-/******/ })
-/************************************************************************/
-/******/ ([
-/* 0 */
-/***/ (function(module, exports) {
-
-function run(){
-
 $(document).ready( () => {
 
     var SwitchtourView = Backbone.View.extend({
@@ -121,6 +29,8 @@ $(document).ready( () => {
                         '<input id="switchtour-config-keephist" type="checkbox"> Keep history' +
                         '<br>' +
                         '<input id="switchtour-config-mouse" type="checkbox"> Enable mouse events' +
+                        '<br>' +
+                        '<input id="switchtour-config-autorun" type="checkbox"> Auto run tour' +
                     '</div>' +
                     '<br>' +
                 '</div>' +
@@ -287,8 +197,8 @@ $(document).ready( () => {
             $('.modal-content').css('filter', 'blur(3px)');
             $('.modal-content').css('pointer-events', 'none');
             $('.modal').css('pointer-events', 'none');
-	    $('.popover').css('filter', 'blur(3px)');
-	    $('.popover').css('pointer-events', 'none');
+            $('.popover').css('filter', 'blur(3px)');
+            $('.popover').css('pointer-events', 'none');
             $('#switchtour-loader').show();
         },
 
@@ -299,8 +209,8 @@ $(document).ready( () => {
             $('.modal-content').css('filter', 'none');
             $('.modal-content').css('pointer-events', 'auto');
             $('.modal').css('pointer-events', 'auto');
-   	    $('.popover').css('filter', 'none');
-	    $('.popover').css('pointer-events', 'auto');
+            $('.popover').css('filter', 'none');
+            $('.popover').css('pointer-events', 'auto');
             $('#switchtour-loader').hide();
         },
 
@@ -407,6 +317,8 @@ $(document).ready( () => {
                                 $("#switchtour-config").css('display','inline');
                                 $("#switchtour-config-keephist").prop('checked','true');
                                 $("#switchtour-config-mouse").prop('checked','true');
+                            } else {
+                                adminMode = false;
                             }
                         });
                     }
@@ -438,6 +350,13 @@ $(document).ready( () => {
                 }
                 if (adminMode && $("#switchtour-config-mouse")[0].checked === true){
                     mouseMode = true;
+                } else {
+                    mouseMode = false;
+                }
+                if (adminMode && $("#switchtour-config-autorun")[0].checked === true){
+                    autorun = true;
+                } else {
+                    autorun = false;
                 }
                 tourprefix = tourid;
                 tourcounter++;
@@ -484,6 +403,7 @@ $(document).ready( () => {
     var tour;
     var adminMode = false;
     var mouseMode = false;
+    var autorun = false;
 
     var Galaxy = window.bundleEntries.getGalaxyInstance();
 //  for(var k in Galaxy) {
@@ -495,6 +415,7 @@ $(document).ready( () => {
     var tourcounter = 0;
     var tourprefix = '';
     var tourEnded = false;
+    var timeoutcounter = 1;
 
     var tour_opts = {
         storage: window.sessionStorage,
@@ -511,19 +432,19 @@ $(document).ready( () => {
                 if(step.iframeelement){
                     _.each(step.onnextclick, (e) => {
                         console.log('tofind' ,e);
-			const el = $("#galaxy_main").contents().find(e)[0];
-			el.mousedown().mouseup();
-			if($("#galaxy_main").contents().find(e).length > 0){
+                        const el = $("#galaxy_main").contents().find(e)[0];
+                        el.mousedown().mouseup();
+                        if($("#galaxy_main").contents().find(e).length > 0){
                             el[0].click();
-			}
+                        }
                     });
                 } else {
                     _.each(step.onnextclick, (e) => {
-			const el = $(e);
+                        const el = $(e);
                         el.mousedown().mouseup();
-			if($(e).length > 0){
-			    el[0].click();
-			}
+                        if($(e).length > 0){
+                            el[0].click();
+                        }
                     });
                 }
             }
@@ -539,20 +460,19 @@ $(document).ready( () => {
             if(step.onprevclick) {
                 if(step.iframeelement){
                     _.each(step.onprevclick, (e) => {
-			const el = $("#galaxy_main").contents().find(e)[0];
+                        const el = $("#galaxy_main").contents().find(e)[0];
                         el.mousedown().mouseup();
-			if($("#galaxy_main").contents().find(e).length > 0){
+                        if($("#galaxy_main").contents().find(e).length > 0){
                             el[0].click();
-			}
+                        }
                     });
                 } else {
                     _.each(step.onnextclick, (e) => {
-                        //document.getElementsByClassName(e.replace(/\./g, " "))[0].click();
-			const el = $(e);
+                        const el = $(e);
                         el.mousedown().mouseup();
-			if($(e).length > 0){
-			    el[0].click();
-			}
+                        if($(e).length > 0){
+                            el[0].click();
+                        }
                     });
                 }
             }
@@ -607,24 +527,24 @@ $(document).ready( () => {
 
                     if(step.onloadclick){
                         if(needDelay){
-			    switchtour.showLoader();
+                            switchtour.showLoader();
                             setTimeout(function(){
                                 _.each(step.onloadclick, (e) => {
-				    const el = $("#galaxy_main").contents().find(e)[0];
-                                    el.mousedown().mouseup();
-				    if($("#galaxy_main").contents().find(e).length > 0){
-					el[0].click();
-				    }
+                                    const el = $("#galaxy_main").contents().find(e)[0];
+                                        el.mousedown().mouseup();
+                                    if($("#galaxy_main").contents().find(e).length > 0){
+                                        el[0].click();
+                                    }
                                 });
                                 switchtour.removeLoader();
                             },500);
                         } else {
                             _.each(step.onloadclick, (e) => {
-				const el = $("#galaxy_main").contents().find(e)[0];
+                                const el = $("#galaxy_main").contents().find(e)[0];
                                 el.mousedown().mouseup();
-				if($("#galaxy_main").contents().find(e).length > 0){
-				    el[0].click();
-				}
+                                if($("#galaxy_main").contents().find(e).length > 0){
+                                    el[0].click();
+                                }
                             });
                         }
                     }
@@ -659,24 +579,24 @@ $(document).ready( () => {
 
                     if(step.onloadclick){
                         if(needDelay){
-			    switchtour.showLoader();
+                            switchtour.showLoader();
                             setTimeout(function(){
                                 _.each(step.onloadclick, (e) => {
-				    const el = $(e);
+                                    const el = $(e);
                                     el.mousedown().mouseup();
-				    if($(e).length > 0){	
-					el[0].click();
-				    }
+                                    if($(e).length > 0){    
+                                        el[0].click();
+                                    }
                                 });
-				switchtour.removeLoader();
+                                switchtour.removeLoader();
                             },500);
                         } else {
                             _.each(step.onloadclick, (e) => {
-				const el = $(e);
+                                const el = $(e);
                                 el.mousedown().mouseup();
-				if($(e).length > 0){	
-				    el[0].click();
-				}
+                                if($(e).length > 0){    
+                                    el[0].click();
+                                }
                             });
                         }
                     }
@@ -684,6 +604,11 @@ $(document).ready( () => {
             }
             if(step.element && step.pointer){
                 $(step.element).css('pointer-events', 'auto');
+            }
+            if(autorun){
+                setTimeout(function(){
+                    tour.next();
+                },1000);
             }
         },
 
@@ -803,18 +728,23 @@ $(document).ready( () => {
                 if (adminMode){
                     message = message + '\n\n' + JSON.stringify(observeElements);
                 }
-                if (confirm(message)) {
+                if(autorun){
+                    console.log("waiting for" , observeElements);
                     $('<div>').attr('type','hidden').appendTo('body').remove(); //trigger observer
                     timeoutLoader();
                 } else {
-                    promiseReject();
-                    switchtour.removeLoader();
-                    observeElements = [];
-                    tour.prev();
-
-                    //switchtour.abort();
+                    if (confirm(message)) {
+                        $('<div>').attr('type','hidden').appendTo('body').remove(); //trigger observer
+                        timeoutcounter++;
+                        timeoutLoader();
+                    } else {
+                        promiseReject();
+                        switchtour.removeLoader();
+                        observeElements = [];
+                        tour.prev();
+                    }
                 }
-            }, 10000);
+            }, 10000*timeoutcounter);
         }
     }
 
@@ -841,31 +771,3 @@ $(document).ready( () => {
         }
     });
 });
-
-}
-
-
-/***/ }),
-/* 1 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _all__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
-/* harmony import */ var _all__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_all__WEBPACK_IMPORTED_MODULE_0__);
-
-
-function main(){
-  _all__WEBPACK_IMPORTED_MODULE_0__["run"]();
-}
-
-try {
-  main();
-} catch (error) {
-  console.log(error);
-}
-
-
-
-/***/ })
-/******/ ]);
