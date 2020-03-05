@@ -503,17 +503,31 @@ $(document).ready( () => {
                  _.each(step.rename, (e) => {
                     const collectionid = $(e.element)[0].id.split("-")[1];
                     $.ajax({
-                        url: Galaxy.root + 'api/histories/' + historyid + '/contents/dataset_collections/' + collectionid,
+                        url: Galaxy.root + 'api/webhooks/switchtour/data',
+                        data: {
+                            fun: 'rename_collection',
+                            id: collectionid,
+                            name: e.name
+                        },
                         async: false,
-                        type: 'PUT',
-                        datatype: "json",
-                        data: { name : e.name },
                         success: function(ret) {
                         },
                         error: function(e) {
                             console.log(e);
                         }
                     });
+                    // $.ajax({
+                    //     url: Galaxy.root + 'api/histories/' + historyid + '/contents/dataset_collections/' + collectionid,
+                    //     async: false,
+                    //     type: 'PUT',
+                    //     datatype: "json",
+                    //     data: { name : e.name },
+                    //     success: function(ret) {
+                    //     },
+                    //     error: function(e) {
+                    //         console.log(e);
+                    //     }
+                    // });
                 });
             }
             if (step.onloadclick || step.textinsert || step.select || step.unselect){
