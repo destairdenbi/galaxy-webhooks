@@ -8,7 +8,7 @@ class Switchtour(object):
         this.trans = trans
         this.user = this.trans.get_user()
         this.history = this.trans.get_history()
-        this.history_id = this.trans.app.security.encode_id(this.history)
+        this.history_id = this.trans.app.security.encode_id(this.history.id)
         this.bibtex = ''
         this.workflow = ''
         this.commands = ''
@@ -168,4 +168,4 @@ def main(trans, webhook, params):
         error = str(e)
         log.exception(e)
 
-    return {'success': not error, 'error': error }
+    return {'success': not error, 'error': error}
