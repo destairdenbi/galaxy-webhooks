@@ -1,4 +1,3 @@
-
 $(document).ready( () => {
 
     var SwitchtourView = Backbone.View.extend({
@@ -567,8 +566,6 @@ $(document).ready( () => {
                         } else {
                             _.each(step.onloadclick, (e) => {
                                 const el = $("#galaxy_main").contents().find(e);
-                                console.log("11111 ",el);
-                                console.log("22222 ",el[0]);
                                 el.mousedown().mouseup();
                                 if($("#galaxy_main").contents().find(e).length > 0){
                                     el[0].click();
@@ -790,5 +787,3 @@ $(document).ready( () => {
         }
     });
 });
-
-
