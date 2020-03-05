@@ -231,6 +231,7 @@ $(document).ready( () => {
         invoke: function() {
             $.getJSON(Galaxy.root + 'api/webhooks/switchtour/data', {fun: ''}, (ret) => {
                 if (ret.success) {
+                    historyid = ret.data.historyid;
                     if (tourcounter > 0) {
                         $.getJSON(Galaxy.root + 'api/tours', (tour) =>  {
                             var choices = '';
@@ -345,7 +346,9 @@ $(document).ready( () => {
             var tourid = $("input[name='switchtour-select']").filter(':checked').val();
             if (tourid && tourcounter === 0) {
                 if (!adminMode || (adminMode && $("#switchtour-config-keephist")[0].checked === false)){
-                    $.getJSON(Galaxy.root + 'api/webhooks/switchtour/data', {fun: 'new_history'}, () => {
+                    $.getJSON(Galaxy.root + 'api/webhooks/switchtour/data', {fun: 'new_history'}, (ret) => {
+                        historyid = ret.data.historyid;
+
                         // Galaxy.currHistoryPanel.refreshContents(); does not work
                         $('#history-refresh-button').click();
                     });
@@ -380,9 +383,13 @@ $(document).ready( () => {
                             step.onloadclick = step.preclick;
                             step.preclick = undefined;
                         }
+                        if (step.autoclick) {
+                            step.onloadclick = step.autoclick;
+                            step.preclick = undefined;
+                        }
                         var allowedKeys = new Set(["title", "element", "placement", "content", "onnextclick", "onprevclick",
                                                    "textinsert", "select" , "unselect", "onloadwait", "onloadclick", "duration", "delay",
-                                                   "orphan", "backdrop", "pointer", "postclick", "preclick", "iframeelement"]);
+                                                   "orphan", "backdrop", "pointer", "postclick", "preclick", "autoclick", "iframeelement", "exit", "rename"]);
                         Object.keys(step).forEach(function(key,index) {
                              if(! allowedKeys.has(key)){
                                  alert("Error in tour " + tourid + ": step " + (stepIdx + 1) + " invalid key " + key);
@@ -419,6 +426,8 @@ $(document).ready( () => {
     var tourEnded = false;
     var timeoutcounter = 1;
 
+    var historyid = '';
+
     var tour_opts = {
         storage: window.sessionStorage,
 
@@ -434,7 +443,7 @@ $(document).ready( () => {
                 if(step.iframeelement){
                     _.each(step.onnextclick, (e) => {
                         console.log('tofind' ,e);
-                        const el = $("#galaxy_main").contents().find(e)[0];
+                        const el = $("#galaxy_main").contents().find(e);
                         el.mousedown().mouseup();
                         if($("#galaxy_main").contents().find(e).length > 0){
                             el[0].click();
@@ -462,7 +471,7 @@ $(document).ready( () => {
             if(step.onprevclick) {
                 if(step.iframeelement){
                     _.each(step.onprevclick, (e) => {
-                        const el = $("#galaxy_main").contents().find(e)[0];
+                        const el = $("#galaxy_main").contents().find(e);
                         el.mousedown().mouseup();
                         if($("#galaxy_main").contents().find(e).length > 0){
                             el[0].click();
@@ -492,12 +501,28 @@ $(document).ready( () => {
             if (step.element){
                 $(step.element)[0].scrollIntoView(false);
             }
+            if (step.element && step.rename){
+                 _.each(step.rename, (e) => {
+                    const collectionid = $(e.element)[0].id.split("-")[1];
+                    $.ajax({
+                        url: Galaxy.root + 'api/histories/' + historyid + '/contents/dataset_collections/' + collectionid,
+                        async: false,
+                        type: 'PUT',
+                        datatype: "json",
+                        data: { name : e.name },
+                        success: function(ret) {
+                        },
+                        error: function(e) {
+                            console.log(e);
+                        }
+                    });
+                });
+            }
             if (step.onloadclick || step.textinsert || step.select || step.unselect){
 
                 needDelay = false;
 
                 if(step.iframeelement){
-
                     if(step.textinsert){
                         needDelay = true;
                          // vue.js does not recognize jquery triggers, thus needs vanilla js
@@ -509,7 +534,7 @@ $(document).ready( () => {
                     _.each(step.select, (e) => {
                         $("#galaxy_main").contents().find(e)[0].prop("selected", true);
                         $("#galaxy_main").contents().find(e)[0].prop("checked", true);
-                        let ep = $("#galaxy_main").contents().find(e)[0].parent()[0];
+                        let ep = $("#galaxy_main").contents().find(e).parent()[0];
                         if(ep.nodeName === "SELECT"){
                             needDelay = true;
                             ep.dispatchEvent(new Event("change",{bubbles:true}));
@@ -517,9 +542,9 @@ $(document).ready( () => {
                         }
                     });
                     _.each(step.unselect, (e) => {
-                        $("#galaxy_main").contents().find(e)[0].prop("selected", false);
-                        $("#galaxy_main").contents().find(e)[0].prop("checked", false);
-                        let ep = $("#galaxy_main").contents().find(e)[0].parent()[0];
+                        $("#galaxy_main").contents().find(e).prop("selected", false);
+                        $("#galaxy_main").contents().find(e).prop("checked", false);
+                        let ep = $("#galaxy_main").contents().find(e).parent()[0];
                         if(ep.nodeName === "SELECT"){
                             needDelay = true;
                             ep.dispatchEvent(new Event("change",{bubbles:true}));
@@ -532,8 +557,8 @@ $(document).ready( () => {
                             switchtour.showLoader();
                             setTimeout(function(){
                                 _.each(step.onloadclick, (e) => {
-                                    const el = $("#galaxy_main").contents().find(e)[0];
-                                        el.mousedown().mouseup();
+                                    const el = $("#galaxy_main").contents().find(e);
+                                    el.mousedown().mouseup();
                                     if($("#galaxy_main").contents().find(e).length > 0){
                                         el[0].click();
                                     }
@@ -542,7 +567,7 @@ $(document).ready( () => {
                             },500);
                         } else {
                             _.each(step.onloadclick, (e) => {
-                                const el = $("#galaxy_main").contents().find(e)[0];
+                                const el = $("#galaxy_main").contents().find(e);
                                 el.mousedown().mouseup();
                                 if($("#galaxy_main").contents().find(e).length > 0){
                                     el[0].click();
@@ -607,18 +632,19 @@ $(document).ready( () => {
             if(step.element && step.pointer){
                 $(step.element).css('pointer-events', 'auto');
             }
-            if(autorun){
-                setTimeout(function(){
-                    tour.next();
-                },1000);
+            if (step.exit) {
+                switchtour.abort();
+            } else {
+                if(autorun){
+                    setTimeout(function(){
+                        tour.next();
+                    },1000);
+                }
             }
         },
 
         onEnd: function() {
-            $('#masthead').css('pointer-events', 'auto');
-            $('#columns').css('pointer-events', 'auto');
-            $('.modal').css('pointer-events', 'auto');
-            $('.modal-content').css('pointer-events', 'auto');
+            switchtour.removeLoader(); //just to re-enable pointer event
             tourEnded = true;
             sessionStorage.removeItem('activeGalaxyTour');
             var step = tour.getStep(tour.getCurrentStep()+1);
@@ -681,18 +707,8 @@ $(document).ready( () => {
                             observeElements.push({element: e, count: 1, mincount: Infinity});
                         });
                     }
-                    if(step.preclick){
-                        _.each(step.preclick, (e) => {
-                            observeElements.push({element: e, count: 1, mincount: Infinity});
-                        });
-                    }
                     if(step.onnextclick){
                         _.each(step.onnextclick, (e) => {
-                            observeElements.push({element: e, count: 1, mincount: Infinity});
-                        });
-                    }
-                    if(step.postclick){
-                        _.each(step.postclick, (e) => {
                             observeElements.push({element: e, count: 1, mincount: Infinity});
                         });
                     }
@@ -713,7 +729,7 @@ $(document).ready( () => {
                         observer.observe(document, {subtree:true, childList:true} );
                         $('<div>').attr('type','hidden').appendTo('body').remove(); //trigger observer
                         setTimeout(function(){
-                            $('<div>').attr('type','hidden').appendTo('body').remove(); //trigger observer again after delay, in case we are too fast
+                            $('<div>').attr('type','hidden').appendTo('body').remove(); //trigger observer again after delay, in case we are too slow
                         }, 500);
                         return promise;
                     }

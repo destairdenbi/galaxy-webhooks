@@ -23,6 +23,7 @@ class Switchtour(object):
 
     def update_tours(this):
         from galaxy.managers.users import UserManager
+        
         if UserManager(this.trans.app).is_admin(this.user):
             this.trans.app.tour_registry.load_tours()
         
@@ -32,7 +33,12 @@ class Switchtour(object):
         for h in HistoryManager(this.trans.app).by_user(this.user):
             if h.name == 'de.STAIR Guide History (non-persistent!)':
                 HistoryManager(this.trans.app).purge(h)
-        this.trans.set_history(this.trans.new_history(name='de.STAIR Guide History (non-persistent!)'))
+        h = this.trans.new_history(name='de.STAIR Guide History (non-persistent!)')
+        this.trans.set_history(h)
+        
+        return {
+            'historyid': this.trans.app.security.encode_id(h.id)
+        }
 
     def get_all(this):
         this.get_commands()
@@ -156,6 +162,8 @@ def main(trans, webhook, params):
             function = getattr(switchtour,params['fun'])
             return {'success': not error, 'error': error, 'data': function()}
 
+        return {'success': not error, 'error': error, 'data': { 'historyid' : switchtour.history_id } }
+        
     except Exception as e:
         error = str(e)
         log.exception(e)
