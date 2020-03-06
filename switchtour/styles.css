@@ -11,6 +11,7 @@
 .popover.tour-tour .popover-header {
     color: #fff;
     background-color: #ed1d99;
+    border-radius: 0px;
 }
 
 .popover.tour-tour .popover-body {
@@ -63,7 +64,22 @@
     border: 3px solid #ed1d99;
     border-radius: 10px;
     padding: 10px;
-    text-align: center;
+}
+
+#switchtour-menu button{
+    color: #fff;
+    background-color: #4fabe4;
+}
+
+.switchtour-centerbuttons {
+    position: relative;
+    left: -50%;
+    float: right;
+}
+
+.switchtour-centerbuttons button {
+    position: relative;
+    left: 50%;
 }
 
 .switchtour-mouseover {
