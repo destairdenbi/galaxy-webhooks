@@ -27,21 +27,24 @@ $(document).ready( () => {
                 '<div id="switchtour-config" style="display:none">' +
                     '<h3>Admin configuration</h3>' +
                     '<div align="left">' +
-                        '<button id="switchtour-config-update" class="float-right">Update tours DB</button>' +
+                        '<button id="switchtour-config-update" style="float:right;">Update tours DB</button>' +
                         '<input id="switchtour-config-keephist" type="checkbox"> Keep history' +
                         '<br>' +
                         '<input id="switchtour-config-mouse" type="checkbox"> Enable mouse events' +
-                        '<br>' +
-                        '<input id="switchtour-config-autorun" type="checkbox"> Auto run tour' +
                     '</div>' +
                     '<br>' +
                 '</div>' +
-                '<div id="switchtour-text"></div>' +
+                '<div id="switchtour-text" align="center"></div>' +
                 '<br>' +
                 '<div id="switchtour-checkbox" align="left"></div>' +
-                '<br>' +
-                '<button id="switchtour-submit">Submit</button>' +
-                '<div id="switchtour-download">' +
+                '<div id="switchtour-execute" align="left">' +
+                    '<br>' +
+                    '<input id="switchtour-config-autorun" type="checkbox"> Auto run tour' +
+                    '<div class="switchtour-centerbuttons">' +
+                        '<button id="switchtour-submit">Submit</button>' +
+                    '</div>' +
+                '</div>' +
+                '<div id="switchtour-download" align="center">' +
                     '<br>' +
                     '<h4>Download current</h4>' +
                     '<button id="switchtour-workflow">Workflow</button>' +
@@ -240,10 +243,10 @@ $(document).ready( () => {
                             for( var i in tour ) {
                                 if( regex.test(tour[i].id) ) {
                                     $.ajax({
-                                        url: Galaxy.root + 'static/test.html',
+                                        url: Galaxy.root + 'static/destair_template.html',
                                         async: false,
                                         success: function() {
-                                            url = Galaxy.root + 'static/test.html';
+                                            url = Galaxy.root + 'static/destair_template.html';
                                             $.ajax({
                                                 url: Galaxy.root + 'static/'+ tour[i].id + '.html',
                                                 async: false,
@@ -263,11 +266,11 @@ $(document).ready( () => {
                                 }
                             }
                             if(choices){
-                                $('#switchtour-text').html(this.text({header: 'Please select an atom', text: ''}));
-                                $('#switchtour-submit').show();
+                                $('#switchtour-text').html(this.text({header: 'Please select one of the following atoms', text: ''}));
+                                $('#switchtour-execute').show();
                             } else {
                                 switchtour.$el.html(switchtour.button({text: 'End'}));
-                                $('#switchtour-submit').hide();
+                                $('#switchtour-execute').hide();
                                 $('#switchtour-text').html(this.text({header: 'Success!', text: 'You completed this guide!<br>Please do not forget to...'}));
                             }
                             $('#switchtour-checkbox').html(choices);
@@ -293,10 +296,10 @@ $(document).ready( () => {
                                         },
                                         error: function() {
                                             $.ajax({
-                                                url: Galaxy.root + 'static/test.html',
+                                                url: Galaxy.root + 'static/destair_template.html',
                                                 async: false,
                                                 success: function() {
-                                                    url = Galaxy.root + 'static/test.html'
+                                                    url = Galaxy.root + 'static/destair_template.html'
                                                 },
                                                 error: function(e) {
                                                     console.log(e);
@@ -309,7 +312,7 @@ $(document).ready( () => {
                             }
                             $('#switchtour-text').html(this.text({header: 'Welcome to de.STAIR workflow generator', text: 'Which type of analysis do you want to perform?'}));
                             $('#switchtour-checkbox').html(choices);
-                            $('#switchtour-submit').show();
+                            $('#switchtour-execute').show();
                             $('#switchtour-download').hide();
                             this.showMenu();
                         });
@@ -358,7 +361,7 @@ $(document).ready( () => {
                 } else {
                     mouseMode = false;
                 }
-                if (adminMode && $("#switchtour-config-autorun")[0].checked === true){
+                if ($("#switchtour-config-autorun")[0].checked === true){
                     autorun = true;
                 } else {
                     autorun = false;
@@ -643,17 +646,18 @@ $(document).ready( () => {
                     }
                 }
             }
+
             if(step.element && step.pointer){
                 $(step.element).css('pointer-events', 'auto');
-            }
-            if (step.exit) {
-                switchtour.abort();
             } else {
                 if(autorun){
                     setTimeout(function(){
                         tour.next();
                     },1000);
                 }
+            }
+            if (step.exit) {
+                switchtour.abort();
             }
         },
 
@@ -741,10 +745,23 @@ $(document).ready( () => {
                         switchtour.showLoader();
                         timeoutLoader();
                         observer.observe(document, {subtree:true, childList:true} );
-                        $('<div>').attr('type','hidden').appendTo('body').remove(); //trigger observer
+                        $('<div>').attr('type','hidden').appendTo('body').remove(); //initial trigger of observer
+                        //address race condition - sometimes trigger and dom change clashes..
+                        setTimeout(function(){
+                            $('<div>').attr('type','hidden').appendTo('body').remove(); 
+                        }, 200);
                         setTimeout(function(){
                             $('<div>').attr('type','hidden').appendTo('body').remove(); //trigger observer again after delay, in case we are too slow
-                        }, 500);
+                        }, 400);
+                        setTimeout(function(){
+                            $('<div>').attr('type','hidden').appendTo('body').remove(); //trigger observer again after delay, in case we are too slow
+                        }, 600);
+                        setTimeout(function(){
+                            $('<div>').attr('type','hidden').appendTo('body').remove(); //trigger observer again after delay, in case we are too slow
+                        }, 800);
+                        setTimeout(function(){
+                            $('<div>').attr('type','hidden').appendTo('body').remove(); //trigger observer again after delay, in case we are too slow
+                        }, 1000);
                         return promise;
                     }
                 }
