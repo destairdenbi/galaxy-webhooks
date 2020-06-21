@@ -1,3 +1,5 @@
+function run(){
+
 $(document).ready( () => {
 
     var SwitchtourView = Backbone.View.extend({
@@ -819,3 +821,5 @@ $(document).ready( () => {
         }
     });
 });
+
+}

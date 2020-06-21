@@ -15,34 +15,40 @@ class Switchtour(object):
 
     def get_user(this):
         from galaxy.managers.users import UserManager
-        
+
         return {
-            'name': this.user.username,
             'isadmin': UserManager(this.trans.app).is_admin(this.user)
         }
 
     def update_tours(this):
+        from galaxy.managers.users import UserManager
+
         if UserManager(this.trans.app).is_admin(this.user):
             this.trans.app.tour_registry.load_tours()
-        
+
     def new_history(this):
         from galaxy.managers.histories import HistoryManager
-        
+
         for h in HistoryManager(this.trans.app).by_user(this.user):
             if h.name == 'de.STAIR Guide History (non-persistent!)':
                 HistoryManager(this.trans.app).purge(h)
-        this.trans.set_history(this.trans.new_history(name='de.STAIR Guide History (non-persistent!)'))
 
-    def get_all(this):
-        this.get_commands()
-        this.get_workflow()
-        this.get_bibtex()
+        h = this.trans.new_history(name='de.STAIR Guide History (non-persistent!)')
+        this.trans.set_history(h)
 
         return {
-            'commands': this.commands,
-            'workflow': this.workflow,
-            'bibtex': this.bibtex
+            'historyid': this.trans.app.security.encode_id(h.id)
         }
+
+    def rename_collection(this, collectionid, newname):
+        from galaxy.managers.collections import DatasetCollectionManager
+
+        payload = {'name' : newname}
+        instance_id = int(this.trans.app.security.decode_id(collectionid))
+        collection_instance = this.trans.sa_session.query(this.trans.app.model.HistoryDatasetCollectionAssociation).get(instance_id)
+        payload = DatasetCollectionManager(this.trans.app)._validate_and_parse_update_payload(payload)
+        DatasetCollectionManager(this.trans.app)._set_from_dict(this.trans, collection_instance, payload)
+
 
     def get_commands(this):
         for e in this.history.contents_iter():
@@ -62,11 +68,12 @@ class Switchtour(object):
         from galaxy.webapps.galaxy.controllers.workflow import WorkflowController
         from galaxy.workflow.extract import extract_workflow
         from galaxy.workflow.extract import summarize
-                
+
         tmpuser = this.user
         if not this.user:
-            #tmpuser = UserManager(this.trans.app).admins()[0]
             tmpusername = os.getenv('GALAXY_DEFAULT_WORKFLOWGENERATOR_USER', os.environ['GALAXY_DEFAULT_ADMIN_USER'])
+            if not tmpusername:
+                tmpuser = UserManager(this.trans.app).admins()[0]
             tmpuser = this.trans.sa_session.query(this.trans.app.model.User).filter_by(username=tmpusername,deleted=False).all()[0]
 
         #html = WorkflowController(this.trans.app).build_from_current_history(this.trans)
@@ -81,9 +88,6 @@ class Switchtour(object):
         dataset_collection_ids = re.findall('dataset_collection_ids.+value="(\d+)',html)
         dataset_collection_names = re.findall('dataset_collection_names.+value="(\d+)',html)
 
-        #w = WorkflowController(this.trans.app).build_from_current_history(this.trans,job_ids=job_ids,dataset_ids=dataset_ids,dataset_collection_ids=dataset_collection_ids, workflow_name='test', dataset_names=dataset_names, dataset_collection_names=dataset_collection_names)
-        # use reimplementation again
-      
         dataset_names = util.listify(dataset_names)
         dataset_collection_names = util.listify(dataset_collection_names)
         stored = extract_workflow(
@@ -96,7 +100,6 @@ class Switchtour(object):
             dataset_names=dataset_names,
             dataset_collection_names=dataset_collection_names
         )
-        #workflow_id = this.trans.security.encode_id(stored.id)
 
         this.workflow = WorkflowController(this.trans.app)._workflow_to_dict(this.trans, stored)
 
@@ -113,14 +116,14 @@ class Switchtour(object):
 
     def get_bibtex(this):
         from galaxy.managers.citations import CitationsManager
-        
+
         citations = []
         for e in this.history.contents_iter():
             if e.creating_job.any_output_dataset_deleted is True or e.creating_job.any_output_dataset_collection_instances_deleted is True:
                 continue
 
             b = CitationsManager(this.trans.app).citations_for_tool_ids([e.creating_job.tool_id])
-            
+
             if b:
                 bib = b[0].to_bibtex()
                 if b[0].has_doi and re.search(r'title\s*=\s*\{.+', bib) is None:
@@ -153,7 +156,12 @@ def main(trans, webhook, params):
 
         if params['fun']:
             function = getattr(switchtour,params['fun'])
+            if params['fun'] == "rename_collection":
+                return {'success': not error, 'error': error, 'data': function(params['id'],params['name'])}
+
             return {'success': not error, 'error': error, 'data': function()}
+
+        return {'success': not error, 'error': error, 'data': { 'historyid' : switchtour.history_id } }
 
     except Exception as e:
         error = str(e)
