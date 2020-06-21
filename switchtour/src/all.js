@@ -388,7 +388,7 @@ $(document).ready( () => {
                         }
                         if (step.autoclick) {
                             step.onloadclick = step.autoclick;
-                            step.preclick = undefined;
+                            step.autoclick = undefined;
                         }
                         var allowedKeys = new Set(["title", "element", "placement", "content", "onnextclick", "onprevclick",
                                                    "textinsert", "select" , "unselect", "onloadwait", "onloadclick", "duration", "delay",
@@ -743,6 +743,7 @@ $(document).ready( () => {
                             promiseReject = reject;
                         });
                         switchtour.showLoader();
+						timeoutcounter = 1;
                         timeoutLoader();
                         observer.observe(document, {subtree:true, childList:true} );
                         $('<div>').attr('type','hidden').appendTo('body').remove(); //initial trigger of observer
