@@ -345,6 +345,11 @@ $(document).ready( () => {
 
         runSelection: function() {
             var tourid = $("input[name='switchtour-select']").filter(':checked').val();
+            if ($("#switchtour-config-autorun")[0].checked === true){
+                autorun = true;
+            } else {
+                autorun = false;
+            }
             if (tourid && tourcounter === 0) {
                 if (!adminMode || (adminMode && $("#switchtour-config-keephist")[0].checked === false)){
                     $.getJSON(Galaxy.root + 'api/webhooks/switchtour/data', {fun: 'new_history'}, (ret) => {
@@ -358,11 +363,6 @@ $(document).ready( () => {
                     mouseMode = true;
                 } else {
                     mouseMode = false;
-                }
-                if ($("#switchtour-config-autorun")[0].checked === true){
-                    autorun = true;
-                } else {
-                    autorun = false;
                 }
                 tourprefix = tourid;
                 tourcounter++;
